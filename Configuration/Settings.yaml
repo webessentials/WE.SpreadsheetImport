@@ -1,0 +1,10 @@
+WE:
+  SpreadsheetImport:
+    swisscomGrb:
+        domain: WE\KIME\Domain\Model\User
+        Configuration:
+          userProfileType:
+            setter: convertUserProfileTypeBySysValue
+            value: 'swisscomGRB'
+          privacy:
+            value: 'private'

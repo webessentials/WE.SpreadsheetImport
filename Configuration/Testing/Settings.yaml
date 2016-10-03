@@ -1,0 +1,11 @@
+WE:
+  SpreadsheetImport:
+    testing:
+      domain: WE\SpreadsheetImport\Tests\Functional\Fixtures\ImportTarget
+      labelPackageKey: 'WE.SpreadsheetImport'
+      Configuration:
+        userProfileType:
+          setter: convertUserProfileTypeBySysValue
+          value: 'swisscomGRB'
+        privacy:
+          value: 'private'

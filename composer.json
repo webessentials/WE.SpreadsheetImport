@@ -1,0 +1,17 @@
+{
+    "description": "A Flow package to import spreadsheet records into configurable domain objects",
+    "type": "typo3-flow-package",
+    "name": "we/spreadsheetimport",
+    "license": [
+        "LGPL-3.0",
+        "MIT"
+    ],
+    "require": {
+        "typo3/flow": "*"
+    },
+    "autoload": {
+        "psr-0": {
+            "WE\\SpreadsheetImport": "Classes/"
+        }
+    }
+}
