@@ -33,4 +33,12 @@ final class Mapping {
 	 * @var string
 	 */
 	public $setter;
+
+	/**
+	 * Overwrite the default query property name used for identifiers with overwritten getter
+	 *
+	 * @var string
+	 */
+	public $queryPropertyName;
+
 }

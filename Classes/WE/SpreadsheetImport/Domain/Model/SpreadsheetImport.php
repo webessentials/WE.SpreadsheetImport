@@ -19,6 +19,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class SpreadsheetImport {
 
+	const IMPORTING_STATUS_IN_QUEUE = 0;
+	const IMPORTING_STATUS_IN_PROGRESS = 1;
+	const IMPORTING_STATUS_COMPLETED = 2;
+	const IMPORTING_STATUS_FAILED = 3;
+
 	/**
 	 * @var string
 	 * @Flow\Validate(type="NotEmpty")
@@ -38,6 +43,7 @@ class SpreadsheetImport {
 
 	/**
 	 * @var string
+	 * @ORM\Column(type="text")
 	 */
 	protected $mapping = '';
 
@@ -55,6 +61,12 @@ class SpreadsheetImport {
 	 * @var boolean
 	 */
 	protected $deleting = FALSE;
+
+	/**
+	 * @var int
+	 * @ORM\Column(options={"default": 0})
+	 */
+	protected $importingStatus = self::IMPORTING_STATUS_IN_QUEUE;
 
 	/**
 	 * @var int
@@ -179,6 +191,20 @@ class SpreadsheetImport {
 	 */
 	public function setDeleting($deleting) {
 		$this->deleting = $deleting;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getImportingStatus() {
+		return $this->importingStatus;
+	}
+
+	/**
+	 * @param int $importingStatus
+	 */
+	public function setImportingStatus($importingStatus) {
+		$this->importingStatus = $importingStatus;
 	}
 
 	/**
