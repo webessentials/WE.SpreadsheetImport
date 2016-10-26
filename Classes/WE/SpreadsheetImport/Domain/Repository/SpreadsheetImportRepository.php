@@ -19,4 +19,9 @@ use TYPO3\Flow\Persistence\Repository;
  */
 class SpreadsheetImportRepository extends Repository {
 
+	/**
+	 * @var array
+	 */
+	protected $defaultOrderings = array('scheduleDate' => \TYPO3\Flow\Persistence\QueryInterface::ORDER_ASCENDING);
+
 }
