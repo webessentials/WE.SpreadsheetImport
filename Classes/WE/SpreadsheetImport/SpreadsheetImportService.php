@@ -36,6 +36,11 @@ class SpreadsheetImportService {
 	protected $mappingProperties;
 
 	/**
+	 * @var array
+	 */
+	protected $columnPropertyMapping;
+
+	/**
 	 * @Flow\InjectConfiguration
 	 * @var array
 	 */
@@ -74,6 +79,7 @@ class SpreadsheetImportService {
 		$this->spreadsheetImport = $spreadsheetImport;
 		$this->context = $this->settings[$spreadsheetImport->getContext()];
 		$this->initDomainMappingProperties();
+		$this->initColumnPropertyMapping();
 
 		return $this;
 	}
@@ -86,6 +92,16 @@ class SpreadsheetImportService {
 		$properties = $this->reflectionService->getPropertyNamesByAnnotation($this->context['domain'], Mapping::class);
 		foreach ($properties as $property) {
 			$this->mappingProperties[$property] = $this->reflectionService->getPropertyAnnotation($this->context['domain'], $property, Mapping::class);
+		}
+	}
+
+	/**
+	 * Flip mapping and return it as a 2-dim array in case the same column is assigned to multiple properties
+	 */
+	private function initColumnPropertyMapping() {
+		$this->columnPropertyMapping = array();
+		foreach ($this->spreadsheetImport->getMapping() as $property => $column) {
+			$this->columnPropertyMapping[$column][] = $property;
 		}
 	}
 
@@ -109,7 +125,7 @@ class SpreadsheetImportService {
 	/**
 	 * @return array
 	 */
-	public function getDomainMappingIdentifierProperties() {
+	private function getDomainMappingIdentifierProperties() {
 		$domainMappingProperties = array();
 		$properties = $this->reflectionService->getPropertyNamesByAnnotation($this->context['domain'], Mapping::class);
 		foreach ($properties as $property) {
@@ -164,7 +180,6 @@ class SpreadsheetImportService {
 	 * @return void
 	 */
 	public function import() {
-		// TODO: This simply creates the objects for now without update or delete
 		$totalInserted = 0;
 		$totalUpdated = 0;
 		$totalDeleted = 0;
@@ -233,7 +248,7 @@ class SpreadsheetImportService {
 	private function findObjectByIdentifierPropertiesPerRow(array $identifierProperties, \PHPExcel_Worksheet_Row $row) {
 		$query = $this->getDomainRepository()->createQuery();
 		$constraints = array();
-		$spreadsheetImportMapping = array_flip($this->spreadsheetImport->getMapping());
+		$spreadsheetImportMapping = $this->spreadsheetImport->getMapping();
 		/** @var Mapping $mapping */
 		foreach ($identifierProperties as $property => $mapping) {
 			$column = $spreadsheetImportMapping[$property];
@@ -266,18 +281,18 @@ class SpreadsheetImportService {
 	 * @param \PHPExcel_Worksheet_Row $row
 	 */
 	private function setObjectPropertiesByRow($newObject, $row) {
-		// TODO: Cache $domainMappingProperties and $mappings
-		$domainMappingProperties = $this->getMappingProperties();
-		$mappings = $this->spreadsheetImport->getMapping();
+		$domainMappingProperties = $this->mappingProperties;
 		/** @var \PHPExcel_Cell $cell */
 		foreach ($row->getCellIterator() as $cell) {
 			$column = $cell->getColumn();
-			if (array_key_exists($column, $mappings)) {
-				$property = $mappings[$column];
-				/** @var Mapping $mapping */
-				$mapping = $domainMappingProperties[$property];
-				$setter = empty($mapping->setter) ? 'set' . ucfirst($property) : $mapping->setter;
-				$newObject->$setter($cell->getValue());
+			if (array_key_exists($column, $this->columnPropertyMapping)) {
+				$properties = $this->columnPropertyMapping[$column];
+				foreach ($properties as $property) {
+					/** @var Mapping $mapping */
+					$mapping = $domainMappingProperties[$property];
+					$setter = empty($mapping->setter) ? 'set' . ucfirst($property) : $mapping->setter;
+					$newObject->$setter($cell->getValue());
+				}
 			}
 		}
 	}

@@ -30,7 +30,7 @@ class FrontendMappingUtility {
 		$domainMappingProperties = $spreadsheetImportService->getMappingProperties();
 		foreach ($domainMappingProperties as $property => $mapping) {
 			$column = $request->getArgument($property);
-			$mappings[$column] = $property;
+			$mappings[$property] = $column;
 		}
 		return $mappings;
 	}
