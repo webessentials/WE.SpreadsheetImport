@@ -71,7 +71,7 @@ class SpreadsheetImportServiceTest extends FunctionalTestCase {
 	 * @test
 	 */
 	public function getMappingPropertiesReturnsPropertiesWithMappingAnnotation() {
-		$properties = $this->spreadsheetImportService->getDomainMappingProperties();
+		$properties = $this->spreadsheetImportService->getMappingProperties();
 		$this->assertArrayHasKey('id', $properties);
 		$this->assertArrayHasKey('name', $properties);
 		/** @var Mapping $id */

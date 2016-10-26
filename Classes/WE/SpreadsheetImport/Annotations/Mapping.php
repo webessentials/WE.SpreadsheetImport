@@ -20,16 +20,29 @@ namespace WE\SpreadsheetImport\Annotations;
 final class Mapping {
 
 	/**
+	 * Label id for the property mapping
+	 *
 	 * @var string
 	 */
 	public $labelId = '';
 
 	/**
+	 * Flag if property is handled as an identifier for updates
+	 *
 	 * @var boolean
 	 */
 	public $identifier = FALSE;
 
 	/**
+	 * Overwrite the default getter for previews
+	 *
+	 * @var string
+	 */
+	public $getter;
+
+	/**
+	 * Overwrite the default setter
+	 *
 	 * @var string
 	 */
 	public $setter;

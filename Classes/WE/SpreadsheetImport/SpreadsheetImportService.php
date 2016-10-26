@@ -31,6 +31,11 @@ class SpreadsheetImportService {
 	protected $context;
 
 	/**
+	 * @var array
+	 */
+	protected $mappingProperties;
+
+	/**
 	 * @Flow\InjectConfiguration
 	 * @var array
 	 */
@@ -68,19 +73,37 @@ class SpreadsheetImportService {
 	public function init(SpreadsheetImport $spreadsheetImport) {
 		$this->spreadsheetImport = $spreadsheetImport;
 		$this->context = $this->settings[$spreadsheetImport->getContext()];
+		$this->initDomainMappingProperties();
+
 		return $this;
+	}
+
+	/**
+	 * Initializes the properties declared by annotations.
+	 */
+	private function initDomainMappingProperties() {
+		$this->mappingProperties = array();
+		$properties = $this->reflectionService->getPropertyNamesByAnnotation($this->context['domain'], Mapping::class);
+		foreach ($properties as $property) {
+			$this->mappingProperties[$property] = $this->reflectionService->getPropertyAnnotation($this->context['domain'], $property, Mapping::class);
+		}
+	}
+
+	/**
+	 * Adds additional mapping properties to the domain mapping properties retrieved by annotations. This increases
+	 * flexibility for dynamic property mapping.
+	 *
+	 * @param array $additionalMappingProperties
+	 */
+	public function addAdditionalMappingProperties(array $additionalMappingProperties) {
+		$this->mappingProperties = array_merge($this->mappingProperties, $additionalMappingProperties);
 	}
 
 	/**
 	 * @return array
 	 */
-	public function getDomainMappingProperties() {
-		$domainMappingProperties = array();
-		$properties = $this->reflectionService->getPropertyNamesByAnnotation($this->context['domain'], Mapping::class);
-		foreach ($properties as $property) {
-			$domainMappingProperties[$property] = $this->reflectionService->getPropertyAnnotation($this->context['domain'], $property, Mapping::class);
-		}
-		return $domainMappingProperties;
+	public function getMappingProperties() {
+		return $this->mappingProperties;
 	}
 
 	/**
@@ -244,7 +267,7 @@ class SpreadsheetImportService {
 	 */
 	private function setObjectPropertiesByRow($newObject, $row) {
 		// TODO: Cache $domainMappingProperties and $mappings
-		$domainMappingProperties = $this->getDomainMappingProperties();
+		$domainMappingProperties = $this->getMappingProperties();
 		$mappings = $this->spreadsheetImport->getMapping();
 		/** @var \PHPExcel_Cell $cell */
 		foreach ($row->getCellIterator() as $cell) {
