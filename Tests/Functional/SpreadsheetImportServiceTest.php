@@ -12,7 +12,6 @@ namespace WE\SpreadsheetImport\Tests\Functional;
  *                                                                        */
 
 use TYPO3\Flow\Reflection\ReflectionService;
-use TYPO3\Flow\Resource\Resource;
 use TYPO3\Flow\Resource\ResourceManager;
 use TYPO3\Flow\Tests\FunctionalTestCase;
 use WE\SpreadsheetImport\Annotations\Mapping;
@@ -63,7 +62,7 @@ class SpreadsheetImportServiceTest extends FunctionalTestCase {
 		$spreadsheetImport->setContext('testing');
 		$resource = $this->resourceManager->importResource(__DIR__ . '/Fixtures/Resources/sample.xlsx');
 		$spreadsheetImport->setFile($resource);
-		$spreadsheetImport->setMapping(array('C' => 'id', 'A' => 'name'));
+		$spreadsheetImport->setMapping(array('id' => 'C', 'name' => 'A'));
 		$this->spreadsheetImportService->init($spreadsheetImport);
 	}
 
@@ -71,7 +70,7 @@ class SpreadsheetImportServiceTest extends FunctionalTestCase {
 	 * @test
 	 */
 	public function getMappingPropertiesReturnsPropertiesWithMappingAnnotation() {
-		$properties = $this->spreadsheetImportService->getDomainMappingProperties();
+		$properties = $this->spreadsheetImportService->getMappingProperties();
 		$this->assertArrayHasKey('id', $properties);
 		$this->assertArrayHasKey('name', $properties);
 		/** @var Mapping $id */
