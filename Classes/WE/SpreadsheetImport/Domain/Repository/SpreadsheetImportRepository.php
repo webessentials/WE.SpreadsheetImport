@@ -24,4 +24,15 @@ class SpreadsheetImportRepository extends Repository {
 	 */
 	protected $defaultOrderings = array('scheduleDate' => \TYPO3\Flow\Persistence\QueryInterface::ORDER_ASCENDING);
 
+	/**
+	 * @param \DateTime $dateTime
+	 *
+	 * @return \TYPO3\Flow\Persistence\QueryResultInterface
+	 */
+	public function findPreviousImportsBySpecificDate(\DateTime $dateTime) {
+		$query = $this->createQuery();
+		$constraint = $query->lessThanOrEqual('scheduleDate', $dateTime);
+		return $query->matching($constraint)->execute();
+	}
+
 }

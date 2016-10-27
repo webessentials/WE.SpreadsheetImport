@@ -31,7 +31,7 @@ class SpreadsheetImport {
 	protected $context;
 
 	/**
-	 * @ORM\OneToOne(cascade={"persist"})
+	 * @ORM\OneToOne(cascade={"persist", "remove"})
 	 * @var \TYPO3\Flow\Resource\Resource
 	 */
 	protected $file;
