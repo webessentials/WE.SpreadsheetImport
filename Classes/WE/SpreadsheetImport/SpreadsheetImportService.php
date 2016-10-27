@@ -26,9 +26,9 @@ class SpreadsheetImportService {
 	protected $spreadsheetImport;
 
 	/**
-	 * @var array
+	 * @var string
 	 */
-	protected $context;
+	protected $domain;
 
 	/**
 	 * @var array
@@ -54,12 +54,6 @@ class SpreadsheetImportService {
 
 	/**
 	 * @Flow\Inject
-	 * @var \TYPO3\Flow\Resource\ResourceManager
-	 */
-	protected $resourceManager;
-
-	/**
-	 * @Flow\Inject
 	 * @var \TYPO3\Flow\Persistence\PersistenceManagerInterface
 	 */
 	protected $persistenceManager;
@@ -71,13 +65,19 @@ class SpreadsheetImportService {
 	protected $objectManager;
 
 	/**
+	 * @Flow\Inject
+	 * @var \TYPO3\Flow\Property\PropertyMapper
+	 */
+	protected $propertyMapper;
+
+	/**
 	 * @param \WE\SpreadsheetImport\Domain\Model\SpreadsheetImport $spreadsheetImport
 	 *
 	 * @return $this
 	 */
 	public function init(SpreadsheetImport $spreadsheetImport) {
 		$this->spreadsheetImport = $spreadsheetImport;
-		$this->context = $this->settings[$spreadsheetImport->getContext()];
+		$this->domain = $this->settings[$spreadsheetImport->getContext()]['domain'];
 		$this->initDomainMappingProperties();
 		$this->initColumnPropertyMapping();
 
@@ -89,9 +89,9 @@ class SpreadsheetImportService {
 	 */
 	private function initDomainMappingProperties() {
 		$this->mappingProperties = array();
-		$properties = $this->reflectionService->getPropertyNamesByAnnotation($this->context['domain'], Mapping::class);
+		$properties = $this->reflectionService->getPropertyNamesByAnnotation($this->domain, Mapping::class);
 		foreach ($properties as $property) {
-			$this->mappingProperties[$property] = $this->reflectionService->getPropertyAnnotation($this->context['domain'], $property, Mapping::class);
+			$this->mappingProperties[$property] = $this->reflectionService->getPropertyAnnotation($this->domain, $property, Mapping::class);
 		}
 	}
 
@@ -109,6 +109,13 @@ class SpreadsheetImportService {
 	 * Adds additional mapping properties to the domain mapping properties retrieved by annotations. This increases
 	 * flexibility for dynamic property mapping.
 	 *
+	 * This was implemented for the single use case to support the Flow package Radmiraal.CouchDB
+	 *
+	 * Note: Those additional property configurations are not persisted and need to be added after each initialization
+	 * of the service. The persisted mappings in the SpreadsheetImport object only contain the property without any
+	 * configuration. Therefore, the import works but only for the default setters and without identifiers. To support
+	 * all, the additional mapping properties need to be persisted together with the mappings.
+	 *
 	 * @param array $additionalMappingProperties
 	 */
 	public function addAdditionalMappingProperties(array $additionalMappingProperties) {
@@ -123,19 +130,12 @@ class SpreadsheetImportService {
 	}
 
 	/**
+	 * @param string $context
+	 *
 	 * @return array
 	 */
-	private function getDomainMappingIdentifierProperties() {
-		$domainMappingProperties = array();
-		$properties = $this->reflectionService->getPropertyNamesByAnnotation($this->context['domain'], Mapping::class);
-		foreach ($properties as $property) {
-			/** @var Mapping $mapping */
-			$mapping = $this->reflectionService->getPropertyAnnotation($this->context['domain'], $property, Mapping::class);
-			if ($mapping->identifier) {
-				$domainMappingProperties[$property] = $mapping;
-			}
-		}
-		return $domainMappingProperties;
+	public function getArgumentsByContext($context) {
+		return $this->settings[$context]['arguments'];
 	}
 
 	/**
@@ -166,7 +166,7 @@ class SpreadsheetImportService {
 	 * @return object
 	 */
 	public function getObjectByRow($number) {
-		$domain = $this->context['domain'];
+		$domain = $this->domain;
 		$newObject = new $domain;
 		// Plus one to skip the headings
 		$file = $this->spreadsheetImport->getFile()->createTemporaryLocalCopy();
@@ -185,7 +185,7 @@ class SpreadsheetImportService {
 		$totalDeleted = 0;
 		$totalSkipped = 0;
 		$objectIds = array();
-		$domain = $this->context['domain'];
+		$domain = $this->domain;
 		$objectRepository = $this->getDomainRepository();
 		$identifierProperties = $this->getDomainMappingIdentifierProperties();
 		$file = $this->spreadsheetImport->getFile()->createTemporaryLocalCopy();
@@ -232,11 +232,27 @@ class SpreadsheetImportService {
 	 * @return \TYPO3\Flow\Persistence\RepositoryInterface
 	 */
 	private function getDomainRepository() {
-		$domainClassName = $this->context['domain'];
+		$domainClassName = $this->domain;
 		$repositoryClassName = preg_replace(array('/\\\Model\\\/', '/$/'), array('\\Repository\\', 'Repository'), $domainClassName);
 		/** @var RepositoryInterface $repository */
 		$repository = $this->objectManager->get($repositoryClassName);
 		return $repository;
+	}
+
+	/**
+	 * @return array
+	 */
+	private function getDomainMappingIdentifierProperties() {
+		$domainMappingProperties = array();
+		$properties = $this->reflectionService->getPropertyNamesByAnnotation($this->domain, Mapping::class);
+		foreach ($properties as $property) {
+			/** @var Mapping $mapping */
+			$mapping = $this->reflectionService->getPropertyAnnotation($this->domain, $property, Mapping::class);
+			if ($mapping->identifier) {
+				$domainMappingProperties[$property] = $mapping;
+			}
+		}
+		return $domainMappingProperties;
 	}
 
 	/**
@@ -277,10 +293,10 @@ class SpreadsheetImportService {
 	}
 
 	/**
-	 * @param object $newObject
+	 * @param object $object
 	 * @param \PHPExcel_Worksheet_Row $row
 	 */
-	private function setObjectPropertiesByRow($newObject, $row) {
+	private function setObjectPropertiesByRow($object, $row) {
 		$domainMappingProperties = $this->mappingProperties;
 		/** @var \PHPExcel_Cell $cell */
 		foreach ($row->getCellIterator() as $cell) {
@@ -288,11 +304,40 @@ class SpreadsheetImportService {
 			if (array_key_exists($column, $this->columnPropertyMapping)) {
 				$properties = $this->columnPropertyMapping[$column];
 				foreach ($properties as $property) {
-					/** @var Mapping $mapping */
-					$mapping = $domainMappingProperties[$property];
-					$setter = empty($mapping->setter) ? 'set' . ucfirst($property) : $mapping->setter;
-					$newObject->$setter($cell->getValue());
+					if (array_key_exists($property, $domainMappingProperties)) {
+						/** @var Mapping $mapping */
+						$mapping = $domainMappingProperties[$property];
+						$setter = empty($mapping->setter) ? 'set' . ucfirst($property) : $mapping->setter;
+					} else {
+						$setter = 'set' . ucfirst($property);
+					}
+					$object->$setter($cell->getValue());
 				}
+			}
+		}
+		$this->setObjectArgumentProperties($object);
+	}
+
+	/**
+	 * @param $object
+	 */
+	private function setObjectArgumentProperties($object) {
+		$contextArguments = $this->getArgumentsByContext($this->spreadsheetImport->getContext());
+		if (is_array($contextArguments)) {
+			$arguments = $this->spreadsheetImport->getArguments();
+			foreach ($contextArguments as $contextArgument) {
+				$name = $contextArgument['name'];
+				if (array_key_exists($name, $arguments)) {
+					if (array_key_exists('domain', $contextArgument)) {
+						$value = $this->propertyMapper->convert($arguments[$name], $contextArgument['domain']);
+					} else {
+						$value = $arguments[$name];
+					}
+				} else {
+					$value = array_key_exists('default', $contextArgument) ? $contextArgument['default'] : NULL;
+				}
+				$setter = 'set' . ucfirst($name);
+				$object->$setter($value);
 			}
 		}
 	}

@@ -2,9 +2,4 @@ WE:
   SpreadsheetImport:
     testing:
       domain: WE\SpreadsheetImport\Tests\Functional\Fixtures\ImportTarget
-      Configuration:
-        userProfileType:
-          setter: convertUserProfileTypeBySysValue
-          value: 'swisscomGRB'
-        privacy:
-          value: 'private'
+      arguments: ~

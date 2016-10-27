@@ -50,7 +50,7 @@ class ImportTarget implements SpreadsheetImportTargetInterface {
 	 * @param string $id
 	 */
 	public function setRawId($id) {
-		$this->id = sprintf("%05d", $id);
+		$this->id = sprintf('%05d', $id);
 	}
 
 	/**

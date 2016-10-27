@@ -48,6 +48,12 @@ class SpreadsheetImport {
 	protected $mapping = '';
 
 	/**
+	 * @var string
+	 * @ORM\Column(type="text")
+	 */
+	protected $arguments = '';
+
+	/**
 	 * @var boolean
 	 */
 	protected $inserting = FALSE;
@@ -141,7 +147,11 @@ class SpreadsheetImport {
 	 * @return array
 	 */
 	public function getMapping() {
-		return unserialize($this->mapping);
+		$mapping = unserialize($this->mapping);
+		if (! is_array($mapping)) {
+			$mapping = array();
+		}
+		return $mapping;
 	}
 
 	/**
@@ -149,6 +159,24 @@ class SpreadsheetImport {
 	 */
 	public function setMapping($mapping) {
 		$this->mapping = serialize($mapping);
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getArguments() {
+		return unserialize($this->arguments);
+	}
+
+	/**
+	 * @param string|array $arguments
+	 */
+	public function setArguments($arguments) {
+		if (is_array($arguments)) {
+			$this->arguments = serialize($arguments);
+		} else {
+			$this->arguments = $arguments;
+		}
 	}
 
 	/**
