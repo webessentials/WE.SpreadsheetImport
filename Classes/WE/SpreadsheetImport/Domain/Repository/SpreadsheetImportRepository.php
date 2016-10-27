@@ -12,7 +12,9 @@ namespace WE\SpreadsheetImport\Domain\Repository;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Persistence\QueryInterface;
 use TYPO3\Flow\Persistence\Repository;
+use WE\SpreadsheetImport\Domain\Model\SpreadsheetImport;
 
 /**
  * @Flow\Scope("singleton")
@@ -22,7 +24,21 @@ class SpreadsheetImportRepository extends Repository {
 	/**
 	 * @var array
 	 */
-	protected $defaultOrderings = array('scheduleDate' => \TYPO3\Flow\Persistence\QueryInterface::ORDER_ASCENDING);
+	protected $defaultOrderings = array('scheduleDate' => QueryInterface::ORDER_DESCENDING);
+
+	/**
+	 * @return SpreadsheetImport
+	 */
+	public function findPreviousOneInQueue() {
+		$query = $this->createQuery();
+		$constraint = $query->logicalAnd(
+			$query->equals('importingStatus', SpreadsheetImport::IMPORTING_STATUS_IN_QUEUE),
+			$query->lessThanOrEqual('scheduleDate', new \DateTime())
+		);
+		return $query->matching($constraint)
+			->setOrderings(array('scheduleDate' => QueryInterface::ORDER_ASCENDING))
+			->execute()->getFirst();
+	}
 
 	/**
 	 * @param \DateTime $dateTime
