@@ -26,7 +26,6 @@ class Version20161026173055 extends AbstractMigration
         $this->abortIf($this->connection->getDatabasePlatform()->getName() != 'mysql', 'Migration can only be executed safely on "mysql".');
 
         $this->addSql('ALTER TABLE we_spreadsheetimport_domain_model_spreadsheetimport ADD arguments LONGTEXT NOT NULL');
-        $this->addSql('ALTER TABLE we_spreadsheetimport_domain_model_spreadsheetimport ADD CONSTRAINT FK_19518FA38C9F3610 FOREIGN KEY (file) REFERENCES typo3_flow_resource_resource (persistence_object_identifier)');
     }
 
     /**
@@ -37,7 +36,6 @@ class Version20161026173055 extends AbstractMigration
     {
         $this->abortIf($this->connection->getDatabasePlatform()->getName() != 'mysql', 'Migration can only be executed safely on "mysql".');
 
-        $this->addSql('ALTER TABLE we_spreadsheetimport_domain_model_spreadsheetimport DROP FOREIGN KEY FK_19518FA38C9F3610');
         $this->addSql('ALTER TABLE we_spreadsheetimport_domain_model_spreadsheetimport DROP arguments');
     }
 }

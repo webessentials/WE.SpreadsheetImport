@@ -1,6 +1,7 @@
 WE:
   SpreadsheetImport:
     cleanupImportFromPreviousDay: 5
+    numberOfRecordsToPersist: 100
     swisscomGrb:
         domain: WE\KIME\Domain\Model\User
         Configuration:

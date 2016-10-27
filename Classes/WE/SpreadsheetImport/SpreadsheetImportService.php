@@ -190,6 +190,8 @@ class SpreadsheetImportService {
 		$identifierProperties = $this->getDomainMappingIdentifierProperties();
 		$file = $this->spreadsheetImport->getFile()->createTemporaryLocalCopy();
 		$reader = \PHPExcel_IOFactory::load($file);
+		$numberOfRecordsToPersist = $this->settings['numberOfRecordsToPersist'];
+		$i = 0;
 		/** @var \PHPExcel_Worksheet_Row $row */
 		foreach ($reader->getActiveSheet()->getRowIterator(2) as $row) {
 			$object = $this->findObjectByIdentifierPropertiesPerRow($identifierProperties, $row);
@@ -199,6 +201,7 @@ class SpreadsheetImportService {
 					$this->setObjectPropertiesByRow($object, $row);
 					$objectRepository->update($object);
 					$totalUpdated++;
+					$i++;
 				} else {
 					$totalSkipped++;
 				}
@@ -208,17 +211,28 @@ class SpreadsheetImportService {
 				$objectRepository->add($newObject);
 				$objectIds[] = $this->persistenceManager->getIdentifierByObject($newObject);
 				$totalInserted++;
+				$i++;
 			} else {
 				$totalSkipped++;
+			}
+			if ($i >= $numberOfRecordsToPersist) {
+				$this->persistenceManager->persistAll();
+				$i = 0;
 			}
 		}
 
 		// remove objects which are not exist on the spreadsheet
 		if ($this->spreadsheetImport->isDeleting()) {
 			$notExistingObjects = $this->findObjectsByExcludedIds($objectIds);
+			$i = 0;
 			foreach ($notExistingObjects as $object) {
 				$objectRepository->remove($object);
 				$totalDeleted++;
+				$i++;
+				if ($i >= $numberOfRecordsToPersist) {
+					$this->persistenceManager->persistAll();
+					$i = 0;
+				}
 			}
 		}
 
