@@ -39,6 +39,12 @@ class SpreadsheetImportCommandController extends CommandController {
 	protected $persistenceManager;
 
 	/**
+	 * @Flow\InjectConfiguration
+	 * @var array
+	 */
+	protected $settings;
+
+	/**
 	 * Import one pending queued spreadsheet into Domain data, and it will import the next one if it is done
 	 */
 	public function importCommand() {
@@ -67,6 +73,25 @@ class SpreadsheetImportCommandController extends CommandController {
 				array($spreadsheetImport->getTotalInserted(), $spreadsheetImport->getTotalUpdated(), $spreadsheetImport->getTotalDeleted(), $spreadsheetImport->getTotalSkipped()));
 		} else {
 			$this->outputFormatted('There is no spreadsheet importing in queue.');
+		}
+	}
+
+	/**
+	 * Cleanup previous spreadsheet imports by specific time (defined by settings)
+	 */
+	public function cleanupCommand() {
+		$cleanupImportFromPreviousDay = $this->settings['cleanupImportFromPreviousDay'];
+		$cleanupFromDate = new \DateTime();
+		$cleanupFromDate->sub(new \DateInterval('P' . $cleanupImportFromPreviousDay . 'D'));
+		$oldSpreadsheetImports = $this->spreadsheetImportRepository->findPreviousImportsBySpecificDate($cleanupFromDate);
+		if ($oldSpreadsheetImports->count() > 0) {
+			/** @var SpreadsheetImport $oldSpreadsheetImport */
+			foreach ($oldSpreadsheetImports as $oldSpreadsheetImport) {
+				$this->spreadsheetImportRepository->remove($oldSpreadsheetImport);
+			}
+			$this->outputLine('%d spreadsheet imports were removed.', array($oldSpreadsheetImports->count()));
+		} else {
+			$this->outputLine('There is no spreadsheet import in queue to remove.');
 		}
 	}
 

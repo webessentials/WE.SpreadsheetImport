@@ -1,5 +1,6 @@
 WE:
   SpreadsheetImport:
+    cleanupImportFromPreviousDay: 5
     swisscomGrb:
         domain: WE\KIME\Domain\Model\User
         Configuration:
