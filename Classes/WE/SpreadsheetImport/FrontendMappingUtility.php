@@ -29,8 +29,8 @@ class FrontendMappingUtility {
 		$mappings = array();
 		$domainMappingProperties = $spreadsheetImportService->getMappingProperties();
 		foreach ($domainMappingProperties as $property => $mapping) {
-			$column = $request->getArgument($property);
-			$mappings[$property] = $column;
+			$columnMapping = array('column' => $request->getArgument($property), 'mapping' => $mapping);
+			$mappings[$property] = $columnMapping;
 		}
 		return $mappings;
 	}

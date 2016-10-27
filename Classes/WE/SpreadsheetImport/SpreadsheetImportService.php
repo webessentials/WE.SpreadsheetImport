@@ -38,7 +38,7 @@ class SpreadsheetImportService {
 	/**
 	 * @var array
 	 */
-	protected $columnPropertyMapping;
+	protected $inverseSpreadsheetImportMapping;
 
 	/**
 	 * @Flow\InjectConfiguration
@@ -85,7 +85,6 @@ class SpreadsheetImportService {
 		$this->spreadsheetImport = $spreadsheetImport;
 		$this->domain = $this->settings[$spreadsheetImport->getContext()]['domain'];
 		$this->initDomainMappingProperties();
-		$this->initColumnPropertyMapping();
 
 		return $this;
 	}
@@ -102,25 +101,27 @@ class SpreadsheetImportService {
 	}
 
 	/**
-	 * Flip mapping and return it as a 2-dim array in case the same column is assigned to multiple properties
+	 * Return an inverse SpreadsheetImport mapping array. It flips the property and column attribute and returns it as a
+	 * 3-dim array instead of a 2-dim array. The reason for that is the case when the same column is assigned to multiple
+	 * properties.
 	 */
-	private function initColumnPropertyMapping() {
-		$this->columnPropertyMapping = array();
-		foreach ($this->spreadsheetImport->getMapping() as $property => $column) {
-			$this->columnPropertyMapping[$column][] = $property;
+	private function getInverseSpreadsheetImportMapping() {
+		if (empty($this->inverseSpreadsheetImportMapping)) {
+			$this->inverseSpreadsheetImportMapping = array();
+			foreach ($this->spreadsheetImport->getMapping() as $property => $columnMapping) {
+				$column = $columnMapping['column'];
+				$propertyMapping = array('property' => $property, 'mapping' => $columnMapping['mapping']);
+				$this->inverseSpreadsheetImportMapping[$column][] = $propertyMapping;
+			}
 		}
+		return $this->inverseSpreadsheetImportMapping;
 	}
 
 	/**
 	 * Adds additional mapping properties to the domain mapping properties retrieved by annotations. This increases
 	 * flexibility for dynamic property mapping.
 	 *
-	 * This was implemented for the single use case to support the Flow package Radmiraal.CouchDB
-	 *
-	 * Note: Those additional property configurations are not persisted and need to be added after each initialization
-	 * of the service. The persisted mappings in the SpreadsheetImport object only contain the property without any
-	 * configuration. Therefore, the import works but only for the default setters and without identifiers. To support
-	 * all, the additional mapping properties need to be persisted together with the mappings.
+	 * This is implemented for the single use case to support the Flow package Radmiraal.CouchDB
 	 *
 	 * @param array $additionalMappingProperties
 	 */
@@ -274,6 +275,7 @@ class SpreadsheetImportService {
 	 * @return array
 	 */
 	private function getDomainMappingIdentifierProperties() {
+		// TODO: Don't use the annotation properties but the SpreadsheetImport mapping since we store the Mapping object there as well
 		$domainMappingProperties = array();
 		$properties = $this->reflectionService->getPropertyNamesByAnnotation($this->domain, Mapping::class);
 		foreach ($properties as $property) {
@@ -298,7 +300,7 @@ class SpreadsheetImportService {
 		$spreadsheetImportMapping = $this->spreadsheetImport->getMapping();
 		/** @var Mapping $mapping */
 		foreach ($identifierProperties as $property => $mapping) {
-			$column = $spreadsheetImportMapping[$property];
+			$column = $spreadsheetImportMapping[$property]['column'];
 			/** @var \PHPExcel_Worksheet_RowCellIterator $cellIterator */
 			$cellIterator = $row->getCellIterator($column, $column);
 			$value = $cellIterator->current()->getValue();
@@ -328,20 +330,17 @@ class SpreadsheetImportService {
 	 * @param \PHPExcel_Worksheet_Row $row
 	 */
 	private function setObjectPropertiesByRow($object, $row) {
-		$domainMappingProperties = $this->mappingProperties;
+		$inverseSpreadsheetImportMapping = $this->getInverseSpreadsheetImportMapping();
 		/** @var \PHPExcel_Cell $cell */
 		foreach ($row->getCellIterator() as $cell) {
 			$column = $cell->getColumn();
-			if (array_key_exists($column, $this->columnPropertyMapping)) {
-				$properties = $this->columnPropertyMapping[$column];
-				foreach ($properties as $property) {
-					if (array_key_exists($property, $domainMappingProperties)) {
-						/** @var Mapping $mapping */
-						$mapping = $domainMappingProperties[$property];
-						$setter = empty($mapping->setter) ? 'set' . ucfirst($property) : $mapping->setter;
-					} else {
-						$setter = 'set' . ucfirst($property);
-					}
+			if (array_key_exists($column, $inverseSpreadsheetImportMapping)) {
+				$properties = $inverseSpreadsheetImportMapping[$column];
+				foreach ($properties as $propertyMapping) {
+					$property = $propertyMapping['property'];
+					/** @var Mapping $mapping */
+					$mapping = $propertyMapping['mapping'];
+					$setter = empty($mapping->setter) ? 'set' . ucfirst($property) : $mapping->setter;
 					$object->$setter($cell->getValue());
 				}
 			}
