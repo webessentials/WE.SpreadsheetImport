@@ -20,6 +20,7 @@ use WE\SpreadsheetImport\Domain\Model\SpreadsheetImport;
  * @Flow\Scope("singleton")
  */
 class SpreadsheetImportService {
+
 	/**
 	 * @var SpreadsheetImport
 	 */
@@ -29,16 +30,6 @@ class SpreadsheetImportService {
 	 * @var string
 	 */
 	protected $domain;
-
-	/**
-	 * @var array
-	 */
-	protected $mappingProperties;
-
-	/**
-	 * @var array
-	 */
-	protected $inverseSpreadsheetImportMapping;
 
 	/**
 	 * @Flow\InjectConfiguration
@@ -77,6 +68,13 @@ class SpreadsheetImportService {
 	protected $validatorResolver;
 
 	/**
+	 * Inverse SpreadsheetImport mapping array
+	 *
+	 * @var array
+	 */
+	private $inverseSpreadsheetImportMapping;
+
+	/**
 	 * @param \WE\SpreadsheetImport\Domain\Model\SpreadsheetImport $spreadsheetImport
 	 *
 	 * @return $this
@@ -84,65 +82,20 @@ class SpreadsheetImportService {
 	public function init(SpreadsheetImport $spreadsheetImport) {
 		$this->spreadsheetImport = $spreadsheetImport;
 		$this->domain = $this->settings[$spreadsheetImport->getContext()]['domain'];
-		$this->initDomainMappingProperties();
 
 		return $this;
 	}
 
 	/**
-	 * Initializes the properties declared by annotations.
+	 * @return array
 	 */
-	private function initDomainMappingProperties() {
-		$this->mappingProperties = array();
+	public function getAnnotationMappingProperties() {
+		$mappingPropertyAnnotations = array();
 		$properties = $this->reflectionService->getPropertyNamesByAnnotation($this->domain, Mapping::class);
 		foreach ($properties as $property) {
-			$this->mappingProperties[$property] = $this->reflectionService->getPropertyAnnotation($this->domain, $property, Mapping::class);
+			$mappingPropertyAnnotations[$property] = $this->reflectionService->getPropertyAnnotation($this->domain, $property, Mapping::class);
 		}
-	}
-
-	/**
-	 * Return an inverse SpreadsheetImport mapping array. It flips the property and column attribute and returns it as a
-	 * 3-dim array instead of a 2-dim array. The reason for that is the case when the same column is assigned to multiple
-	 * properties.
-	 */
-	private function getInverseSpreadsheetImportMapping() {
-		if (empty($this->inverseSpreadsheetImportMapping)) {
-			$this->inverseSpreadsheetImportMapping = array();
-			foreach ($this->spreadsheetImport->getMapping() as $property => $columnMapping) {
-				$column = $columnMapping['column'];
-				$propertyMapping = array('property' => $property, 'mapping' => $columnMapping['mapping']);
-				$this->inverseSpreadsheetImportMapping[$column][] = $propertyMapping;
-			}
-		}
-		return $this->inverseSpreadsheetImportMapping;
-	}
-
-	/**
-	 * Adds additional mapping properties to the domain mapping properties retrieved by annotations. This increases
-	 * flexibility for dynamic property mapping.
-	 *
-	 * This is implemented for the single use case to support the Flow package Radmiraal.CouchDB
-	 *
-	 * @param array $additionalMappingProperties
-	 */
-	public function addAdditionalMappingProperties(array $additionalMappingProperties) {
-		$this->mappingProperties = array_merge($this->mappingProperties, $additionalMappingProperties);
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getMappingProperties() {
-		return $this->mappingProperties;
-	}
-
-	/**
-	 * @param string $context
-	 *
-	 * @return array
-	 */
-	public function getArgumentsByContext($context) {
-		return $this->settings[$context]['arguments'];
+		return $mappingPropertyAnnotations;
 	}
 
 	/**
@@ -349,10 +302,27 @@ class SpreadsheetImportService {
 	}
 
 	/**
+	 * Return an inverse SpreadsheetImport mapping array. It flips the property and column attribute and returns it as a
+	 * 3-dim array instead of a 2-dim array. The reason for that is the case when the same column is assigned to multiple
+	 * properties.
+	 */
+	private function getInverseSpreadsheetImportMapping() {
+		if (empty($this->inverseSpreadsheetImportMapping)) {
+			$this->inverseSpreadsheetImportMapping = array();
+			foreach ($this->spreadsheetImport->getMapping() as $property => $columnMapping) {
+				$column = $columnMapping['column'];
+				$propertyMapping = array('property' => $property, 'mapping' => $columnMapping['mapping']);
+				$this->inverseSpreadsheetImportMapping[$column][] = $propertyMapping;
+			}
+		}
+		return $this->inverseSpreadsheetImportMapping;
+	}
+
+	/**
 	 * @param $object
 	 */
 	private function setObjectArgumentProperties($object) {
-		$contextArguments = $this->getArgumentsByContext($this->spreadsheetImport->getContext());
+		$contextArguments = $this->settings[$this->spreadsheetImport->getContext()]['arguments'];
 		if (is_array($contextArguments)) {
 			$arguments = $this->spreadsheetImport->getArguments();
 			foreach ($contextArguments as $contextArgument) {
