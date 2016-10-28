@@ -19,10 +19,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class SpreadsheetImport {
 
-	const IMPORTING_STATUS_IN_QUEUE = 0;
-	const IMPORTING_STATUS_IN_PROGRESS = 1;
-	const IMPORTING_STATUS_COMPLETED = 2;
-	const IMPORTING_STATUS_FAILED = 3;
+	const IMPORTING_STATUS_DRAFT = 0;
+	const IMPORTING_STATUS_IN_QUEUE = 1;
+	const IMPORTING_STATUS_IN_PROGRESS = 2;
+	const IMPORTING_STATUS_COMPLETED = 3;
+	const IMPORTING_STATUS_FAILED = 4;
 
 	/**
 	 * @var string
@@ -72,7 +73,7 @@ class SpreadsheetImport {
 	 * @var int
 	 * @ORM\Column(options={"default": 0})
 	 */
-	protected $importingStatus = self::IMPORTING_STATUS_IN_QUEUE;
+	protected $importingStatus = self::IMPORTING_STATUS_DRAFT;
 
 	/**
 	 * @var int

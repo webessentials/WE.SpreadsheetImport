@@ -62,7 +62,9 @@ class SpreadsheetImportServiceTest extends FunctionalTestCase {
 		$spreadsheetImport->setContext('testing');
 		$resource = $this->resourceManager->importResource(__DIR__ . '/Fixtures/Resources/sample.xlsx');
 		$spreadsheetImport->setFile($resource);
-		$spreadsheetImport->setMapping(array('id' => 'C', 'name' => 'A'));
+		$idMapping = array('column' => 'C', 'mapping' => new Mapping());
+		$nameMapping = array('column' => 'A', 'mapping' => new Mapping());
+		$spreadsheetImport->setMapping(array('id' => $idMapping, 'name' => $nameMapping));
 		$this->spreadsheetImportService->init($spreadsheetImport);
 	}
 
@@ -70,7 +72,7 @@ class SpreadsheetImportServiceTest extends FunctionalTestCase {
 	 * @test
 	 */
 	public function getMappingPropertiesReturnsPropertiesWithMappingAnnotation() {
-		$properties = $this->spreadsheetImportService->getMappingProperties();
+		$properties = $this->spreadsheetImportService->getAnnotationMappingProperties();
 		$this->assertArrayHasKey('id', $properties);
 		$this->assertArrayHasKey('name', $properties);
 		/** @var Mapping $id */

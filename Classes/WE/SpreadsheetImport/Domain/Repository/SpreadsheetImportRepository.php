@@ -29,10 +29,10 @@ class SpreadsheetImportRepository extends Repository {
 	/**
 	 * @return SpreadsheetImport
 	 */
-	public function findPreviousOneInQueue() {
+	public function findNextInQueue() {
 		$query = $this->createQuery();
 		$constraint = $query->logicalAnd(
-			$query->equals('importingStatus', SpreadsheetImport::IMPORTING_STATUS_IN_QUEUE),
+			$query->lessThanOrEqual('importingStatus', SpreadsheetImport::IMPORTING_STATUS_IN_QUEUE),
 			$query->lessThanOrEqual('scheduleDate', new \DateTime())
 		);
 		return $query->matching($constraint)
@@ -51,4 +51,18 @@ class SpreadsheetImportRepository extends Repository {
 		return $query->matching($constraint)->execute();
 	}
 
+	/**
+	 * @param string $context
+	 * @param array $arguments
+	 *
+	 * @return \TYPO3\Flow\Persistence\QueryResultInterface
+	 */
+	public function findByContextAndArguments($context, $arguments = array()) {
+		$query = $this->createQuery();
+		$constraint = $query->logicalAnd(
+			$query->equals('context', $context),
+			$query->equals('arguments', serialize($arguments))
+		);
+		return $query->matching($constraint)->execute();
+	}
 }

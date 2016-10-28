@@ -54,7 +54,7 @@ class SpreadsheetImportCommandController extends CommandController {
 			$this->quit();
 		}
 		/** @var SpreadsheetImport $spreadsheetImport */
-		$spreadsheetImport = $this->spreadsheetImportRepository->findPreviousOneInQueue();
+		$spreadsheetImport = $this->spreadsheetImportRepository->findNextInQueue();
 		if ($spreadsheetImport instanceof SpreadsheetImport) {
 			// mark importing status as "Progressing" before continuing the importing
 			$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_IN_PROGRESS);
