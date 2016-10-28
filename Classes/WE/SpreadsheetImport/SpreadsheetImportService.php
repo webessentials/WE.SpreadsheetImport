@@ -290,14 +290,33 @@ class SpreadsheetImportService {
 	}
 
 	/**
+	 * @param \TYPO3\Flow\Persistence\QueryInterface $query
+	 * @param array $constraints
+	 */
+	private function mergeQueryConstraintsWithArguments(QueryInterface $query, &$constraints) {
+		$contextArguments = $this->settings[$this->spreadsheetImport->getContext()]['arguments'];
+		if (is_array($contextArguments)) {
+			foreach ($contextArguments as $contextArgument) {
+				$name = $contextArgument['name'];
+				$arguments = $this->spreadsheetImport->getArguments();
+				if (array_key_exists($name, $arguments)) {
+					$value = $arguments[$name];
+					$constraints[] = $query->equals($name, $value);
+				}
+			}
+		}
+	}
+
+	/**
 	 * @param array $identifiers
 	 *
 	 * @return \TYPO3\Flow\Persistence\QueryResultInterface
 	 */
 	private function findObjectsByExcludedIds(array $identifiers) {
 		$query = $this->getDomainRepository()->createQuery();
-		$constraint = $query->logicalNot($query->in('Persistence_Object_Identifier', $identifiers));
-		return $query->matching($constraint)->execute();
+		$constraints[] = $query->logicalNot($query->in('Persistence_Object_Identifier', $identifiers));
+		$this->mergeQueryConstraintsWithArguments($query, $constraints);
+		return $query->matching($query->logicalAnd($constraints))->execute();
 	}
 
 	/**
