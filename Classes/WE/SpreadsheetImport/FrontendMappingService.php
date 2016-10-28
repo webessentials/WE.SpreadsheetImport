@@ -46,8 +46,11 @@ class FrontendMappingService {
 		if (is_array($contextArguments)) {
 			foreach ($contextArguments as $contextArgument) {
 				$name = $contextArgument['name'];
-				$default = isset($contextArgument['default']) ? $contextArgument['default'] : NULL;
-				$arguments[$name] = $request->hasArgument($name) ? $request->getArgument($name) : $default;
+				if (isset($contextArgument['static'])) {
+					$arguments[$name] = $contextArgument['static'];
+				} else {
+					$arguments[$name] = $request->hasArgument($name) ? $request->getArgument($name) : NULL;
+				}
 			}
 		}
 		return $arguments;

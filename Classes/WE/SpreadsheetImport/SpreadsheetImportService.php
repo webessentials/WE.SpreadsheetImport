@@ -355,11 +355,9 @@ class SpreadsheetImportService {
 					} else {
 						$value = $arguments[$name];
 					}
-				} else {
-					$value = array_key_exists('default', $contextArgument) ? $contextArgument['default'] : NULL;
+					$setter = 'set' . ucfirst($name);
+					$object->$setter($value);
 				}
-				$setter = 'set' . ucfirst($name);
-				$object->$setter($value);
 			}
 		}
 	}
