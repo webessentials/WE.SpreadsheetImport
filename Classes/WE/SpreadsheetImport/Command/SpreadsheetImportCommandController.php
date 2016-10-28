@@ -69,7 +69,7 @@ class SpreadsheetImportCommandController extends CommandController {
 			$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_COMPLETED);
 			$this->spreadsheetImportRepository->update($spreadsheetImport);
 
-			$this->outputFormatted('Spreadsheet has been exported. (totalInserted: %d, totalUpdated: %d, totalDeleted: %d, totalSkipped: %d)',
+			$this->outputFormatted('Spreadsheet has been imported. (totalInserted: %d, totalUpdated: %d, totalDeleted: %d, totalSkipped: %d)',
 				array($spreadsheetImport->getTotalInserted(), $spreadsheetImport->getTotalUpdated(), $spreadsheetImport->getTotalDeleted(), $spreadsheetImport->getTotalSkipped()));
 		} else {
 			$this->outputFormatted('There is no spreadsheet importing in queue.');

@@ -71,6 +71,12 @@ class SpreadsheetImportService {
 	protected $propertyMapper;
 
 	/**
+	 * @Flow\Inject
+	 * @var \TYPO3\Flow\Validation\ValidatorResolver
+	 */
+	protected $validatorResolver;
+
+	/**
 	 * @param \WE\SpreadsheetImport\Domain\Model\SpreadsheetImport $spreadsheetImport
 	 *
 	 * @return $this
@@ -187,6 +193,7 @@ class SpreadsheetImportService {
 		$objectIds = array();
 		$domain = $this->domain;
 		$objectRepository = $this->getDomainRepository();
+		$objectValidator = $this->validatorResolver->getBaseValidatorConjunction($domain);
 		$identifierProperties = $this->getDomainMappingIdentifierProperties();
 		$file = $this->spreadsheetImport->getFile()->createTemporaryLocalCopy();
 		$reader = \PHPExcel_IOFactory::load($file);
@@ -199,21 +206,33 @@ class SpreadsheetImportService {
 				$objectIds[] = $this->persistenceManager->getIdentifierByObject($object);
 				if ($this->spreadsheetImport->isUpdating()) {
 					$this->setObjectPropertiesByRow($object, $row);
+					$validationResult = $objectValidator->validate($object);
+					if ($validationResult->hasErrors()) {
+						$totalSkipped++;
+						continue;
+					}
 					$objectRepository->update($object);
 					$totalUpdated++;
 					$i++;
 				} else {
 					$totalSkipped++;
+					continue;
 				}
 			} elseif ($this->spreadsheetImport->isInserting()) {
 				$newObject = new $domain;
 				$this->setObjectPropertiesByRow($newObject, $row);
+				$validationResult = $objectValidator->validate($newObject);
+				if ($validationResult->hasErrors()) {
+					$totalSkipped++;
+					continue;
+				}
 				$objectRepository->add($newObject);
 				$objectIds[] = $this->persistenceManager->getIdentifierByObject($newObject);
 				$totalInserted++;
 				$i++;
 			} else {
 				$totalSkipped++;
+				continue;
 			}
 			if ($i >= $numberOfRecordsToPersist) {
 				$this->persistenceManager->persistAll();
@@ -224,7 +243,6 @@ class SpreadsheetImportService {
 		// remove objects which are not exist on the spreadsheet
 		if ($this->spreadsheetImport->isDeleting()) {
 			$notExistingObjects = $this->findObjectsByExcludedIds($objectIds);
-			$i = 0;
 			foreach ($notExistingObjects as $object) {
 				$objectRepository->remove($object);
 				$totalDeleted++;
@@ -246,8 +264,7 @@ class SpreadsheetImportService {
 	 * @return \TYPO3\Flow\Persistence\RepositoryInterface
 	 */
 	private function getDomainRepository() {
-		$domainClassName = $this->domain;
-		$repositoryClassName = preg_replace(array('/\\\Model\\\/', '/$/'), array('\\Repository\\', 'Repository'), $domainClassName);
+		$repositoryClassName = preg_replace(array('/\\\Model\\\/', '/$/'), array('\\Repository\\', 'Repository'), $this->domain);
 		/** @var RepositoryInterface $repository */
 		$repository = $this->objectManager->get($repositoryClassName);
 		return $repository;
