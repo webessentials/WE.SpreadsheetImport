@@ -35,6 +35,18 @@ class FrontendMappingService {
 	protected $settings;
 
 	/**
+	 * @Flow\Inject
+	 * @var \TYPO3\Flow\Persistence\PersistenceManagerInterface
+	 */
+	protected $persistenceManager;
+
+	/**
+	 * @Flow\Inject
+	 * @var \TYPO3\Flow\Property\PropertyMapper
+	 */
+	protected $propertyMapper;
+
+	/**
 	 * @param string $context
 	 * @param \TYPO3\Flow\Mvc\ActionRequest $request
 	 *
@@ -48,8 +60,16 @@ class FrontendMappingService {
 				$name = $contextArgument['name'];
 				if (isset($contextArgument['static'])) {
 					$arguments[$name] = $contextArgument['static'];
+				} elseif ($request->hasArgument($name)) {
+					$value = $request->getArgument($name);
+					if (isset($contextArgument['domain'])) {
+						$object = $this->propertyMapper->convert($value, $contextArgument['domain']);
+						$arguments[$name] = $this->persistenceManager->getIdentifierByObject($object);
+					} else {
+						$arguments[$name] = $value;
+					}
 				} else {
-					$arguments[$name] = $request->hasArgument($name) ? $request->getArgument($name) : NULL;
+					$arguments[$name] = NULL;
 				}
 			}
 		}
