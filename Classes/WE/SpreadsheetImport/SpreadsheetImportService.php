@@ -12,6 +12,7 @@ namespace WE\SpreadsheetImport;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Persistence\QueryInterface;
 use TYPO3\Flow\Persistence\RepositoryInterface;
 use WE\SpreadsheetImport\Annotations\Mapping;
 use WE\SpreadsheetImport\Domain\Model\SpreadsheetImport;
@@ -260,10 +261,31 @@ class SpreadsheetImportService {
 			$propertyName = $mapping->queryPropertyName ?: $property;
 			$constraints[] = $query->equals($propertyName, $value);
 		}
+		$this->mergeQueryConstraintsWithArgumentIdentifiers($query, $constraints);
 		if (!empty($constraints)) {
 			return $query->matching($query->logicalAnd($constraints))->execute()->getFirst();
 		} else {
 			return NULL;
+		}
+	}
+
+	/**
+	 * @param \TYPO3\Flow\Persistence\QueryInterface $query
+	 * @param array $constraints
+	 */
+	private function mergeQueryConstraintsWithArgumentIdentifiers(QueryInterface $query, &$constraints) {
+		$contextArguments = $this->settings[$this->spreadsheetImport->getContext()]['arguments'];
+		if (is_array($contextArguments)) {
+			foreach ($contextArguments as $contextArgument) {
+				if (isset($contextArgument['identifier']) && $contextArgument['identifier'] == TRUE) {
+					$name = $contextArgument['name'];
+					$arguments = $this->spreadsheetImport->getArguments();
+					if (array_key_exists($name, $arguments)) {
+						$value = $arguments[$name];
+						$constraints[] = $query->equals($name, $value);
+					}
+				}
+			}
 		}
 	}
 
