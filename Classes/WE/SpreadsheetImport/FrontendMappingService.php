@@ -99,6 +99,7 @@ class FrontendMappingService {
 	 * @return array
 	 */
 	public function getMappingPreview($mapping, $record) {
+		$record = max($record, 1);
 		$previewObject = $this->spreadsheetImportService->getObjectByRow($record);
 		$preview = array();
 		foreach ($mapping as $property => $columnMapping) {
