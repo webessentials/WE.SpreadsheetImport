@@ -102,11 +102,19 @@ class SpreadsheetImportService {
 	/**
 	 * @return array
 	 */
+	public function getTotalRecords() {
+		$sheet = $this->getFileActiveSheet();
+		$highestColumn = $sheet->getHighestDataRow();
+
+		return $highestColumn - 1;
+	}
+
+	/**
+	 * @return array
+	 */
 	public function getSpreadsheetColumns() {
 		$columns = array();
-		$file = $this->spreadsheetImport->getFile()->createTemporaryLocalCopy();
-		$reader = \PHPExcel_IOFactory::load($file);
-		$sheet = $reader->getActiveSheet();
+		$sheet = $this->getFileActiveSheet();
 		$highestColumn = $sheet->getHighestDataColumn();
 		$row = $sheet->getRowIterator(1, 1)->current();
 		$cellIterator = $row->getCellIterator();
@@ -130,9 +138,8 @@ class SpreadsheetImportService {
 		$domain = $this->domain;
 		$newObject = new $domain;
 		// Plus one to skip the headings
-		$file = $this->spreadsheetImport->getFile()->createTemporaryLocalCopy();
-		$reader = \PHPExcel_IOFactory::load($file);
-		$row = $reader->getActiveSheet()->getRowIterator($number + 1, $number + 1)->current();
+		$sheet = $this->getFileActiveSheet();
+		$row = $sheet->getRowIterator($number + 1, $number + 1)->current();
 		$this->setObjectPropertiesByRow($newObject, $row);
 		return $newObject;
 	}
@@ -150,12 +157,11 @@ class SpreadsheetImportService {
 		$objectRepository = $this->getDomainRepository();
 		$objectValidator = $this->validatorResolver->getBaseValidatorConjunction($domain);
 		$identifierProperties = $this->getDomainMappingIdentifierProperties();
-		$file = $this->spreadsheetImport->getFile()->createTemporaryLocalCopy();
-		$reader = \PHPExcel_IOFactory::load($file);
+		$sheet = $this->getFileActiveSheet();
 		$numberOfRecordsToPersist = $this->settings['numberOfRecordsToPersist'];
 		$i = 0;
 		/** @var \PHPExcel_Worksheet_Row $row */
-		foreach ($reader->getActiveSheet()->getRowIterator(2) as $row) {
+		foreach ($sheet->getRowIterator(2) as $row) {
 			$object = $this->findObjectByIdentifierPropertiesPerRow($identifierProperties, $row);
 			if (is_object($object)) {
 				$objectIds[] = $this->persistenceManager->getIdentifierByObject($object);
@@ -213,6 +219,16 @@ class SpreadsheetImportService {
 		$this->spreadsheetImport->setTotalUpdated($totalUpdated);
 		$this->spreadsheetImport->setTotalDeleted($totalDeleted);
 		$this->spreadsheetImport->setTotalSkipped($totalSkipped);
+	}
+
+	/**
+	 * @return \PHPExcel_Worksheet
+	 */
+	private function getFileActiveSheet() {
+		$file = $this->spreadsheetImport->getFile()->createTemporaryLocalCopy();
+		$reader = \PHPExcel_IOFactory::load($file);
+		$sheet = $reader->getActiveSheet();
+		return $sheet;
 	}
 
 	/**
