@@ -32,7 +32,7 @@ class SpreadsheetImportRepository extends Repository {
 	public function findNextInQueue() {
 		$query = $this->createQuery();
 		$constraint = $query->logicalAnd(
-			$query->lessThanOrEqual('importingStatus', SpreadsheetImport::IMPORTING_STATUS_IN_QUEUE),
+			$query->equals('importingStatus', SpreadsheetImport::IMPORTING_STATUS_IN_QUEUE),
 			$query->lessThanOrEqual('scheduleDate', new \DateTime())
 		);
 		return $query->matching($constraint)

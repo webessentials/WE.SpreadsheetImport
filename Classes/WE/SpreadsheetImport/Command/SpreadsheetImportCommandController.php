@@ -13,6 +13,7 @@ namespace WE\SpreadsheetImport\Command;
 
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Cli\CommandController;
+use TYPO3\Flow\Exception;
 use WE\SpreadsheetImport\Domain\Model\SpreadsheetImport;
 
 /**
@@ -63,14 +64,16 @@ class SpreadsheetImportCommandController extends CommandController {
 
 			// do importing and mark its status as "Completed/Failed"
 			$this->spreadsheetImportService->init($spreadsheetImport);
-			$this->spreadsheetImportService->import();
-
-			// mark importing status as "Completed"
-			$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_COMPLETED);
+			try {
+				$this->spreadsheetImportService->import();
+				$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_COMPLETED);
+				$this->outputFormatted('Spreadsheet has been imported. (totalInserted: %d, totalUpdated: %d, totalDeleted: %d, totalSkipped: %d)',
+					array($spreadsheetImport->getTotalInserted(), $spreadsheetImport->getTotalUpdated(), $spreadsheetImport->getTotalDeleted(), $spreadsheetImport->getTotalSkipped()));
+			} catch (Exception $e) {
+				$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_FAILED);
+				$this->outputFormatted('Spreadsheet imported failed.');
+			}
 			$this->spreadsheetImportRepository->update($spreadsheetImport);
-
-			$this->outputFormatted('Spreadsheet has been imported. (totalInserted: %d, totalUpdated: %d, totalDeleted: %d, totalSkipped: %d)',
-				array($spreadsheetImport->getTotalInserted(), $spreadsheetImport->getTotalUpdated(), $spreadsheetImport->getTotalDeleted(), $spreadsheetImport->getTotalSkipped()));
 		} else {
 			$this->outputFormatted('There is no spreadsheet importing in queue.');
 		}
