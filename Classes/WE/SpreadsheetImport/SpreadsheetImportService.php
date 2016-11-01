@@ -340,6 +340,8 @@ class SpreadsheetImportService {
 	 * @param \PHPExcel_Worksheet_Row $row
 	 */
 	private function setObjectPropertiesByRow($object, $row) {
+		// Set the arguments first as mapping property setters might be dependent on argument properties
+		$this->setObjectArgumentProperties($object);
 		$inverseSpreadsheetImportMapping = $this->getInverseSpreadsheetImportMapping();
 		/** @var \PHPExcel_Cell $cell */
 		foreach ($row->getCellIterator() as $cell) {
@@ -355,7 +357,6 @@ class SpreadsheetImportService {
 				}
 			}
 		}
-		$this->setObjectArgumentProperties($object);
 	}
 
 	/**
