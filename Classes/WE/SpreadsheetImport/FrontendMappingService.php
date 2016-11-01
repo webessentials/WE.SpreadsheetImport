@@ -14,6 +14,7 @@ namespace WE\SpreadsheetImport;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Mvc\ActionRequest;
 use WE\SpreadsheetImport\Annotations\Mapping;
+use WE\SpreadsheetImport\Domain\Model\SpreadsheetImport;
 
 /**
  * Service class of basic FE mapping functionality for simple usage on separate implementations.
@@ -45,6 +46,12 @@ class FrontendMappingService {
 	 * @var \TYPO3\Flow\Property\PropertyMapper
 	 */
 	protected $propertyMapper;
+
+	/**
+	 * @Flow\Inject
+	 * @var \TYPO3\Flow\Validation\ValidatorResolver
+	 */
+	protected $validatorResolver;
 
 	/**
 	 * @param string $context
@@ -93,21 +100,30 @@ class FrontendMappingService {
 	}
 
 	/**
-	 * @param array $mapping
-	 * @param int $record
+	 * @param \WE\SpreadsheetImport\Domain\Model\SpreadsheetImport $spreadsheetImport
+	 * @param $record
 	 *
 	 * @return array
 	 */
-	public function getMappingPreview($mapping, $record) {
+	public function getMappingPreview(SpreadsheetImport $spreadsheetImport, $record) {
+		$mapping = $spreadsheetImport->getMapping();
+		$domain = $this->settings[$spreadsheetImport->getContext()]['domain'];
 		$record = max($record, 1);
 		$previewObject = $this->spreadsheetImportService->getObjectByRow($record);
 		$preview = array();
+		$hasErrors = FALSE;
+		$objectValidator = $this->validatorResolver->getBaseValidatorConjunction($domain);
+		$errors = $objectValidator->validate($previewObject)->getFlattenedErrors();
 		foreach ($mapping as $property => $columnMapping) {
 			/** @var Mapping $mapping */
 			$mapping = $columnMapping['mapping'];
 			$getter = empty($mapping->getter) ? 'get' . ucfirst($property) : $mapping->getter;
 			$preview[$property] = array('value' => $previewObject->$getter(), 'mapping' => $mapping);
+			if (isset($errors[$property])) {
+				$preview[$property]['error'] = $errors[$property];
+				$hasErrors = TRUE;
+			}
 		}
-		return $preview;
+		return array('preview' => $preview, 'hasErrors' => $hasErrors);
 	}
 }
