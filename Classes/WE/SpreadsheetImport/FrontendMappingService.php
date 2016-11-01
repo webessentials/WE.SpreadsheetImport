@@ -106,7 +106,7 @@ class FrontendMappingService {
 			/** @var Mapping $mapping */
 			$mapping = $columnMapping['mapping'];
 			$getter = empty($mapping->getter) ? 'get' . ucfirst($property) : $mapping->getter;
-			$preview[$property] = $previewObject->$getter();
+			$preview[$property] = array('value' => $previewObject->$getter(), 'mapping' => $mapping);
 		}
 		return $preview;
 	}
