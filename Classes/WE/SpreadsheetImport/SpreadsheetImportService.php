@@ -137,8 +137,8 @@ class SpreadsheetImportService {
 	public function getObjectByRow($number) {
 		$domain = $this->domain;
 		$newObject = new $domain;
-		// Plus one to skip the headings
 		$sheet = $this->getFileActiveSheet();
+		// Plus one to skip the headings
 		$row = $sheet->getRowIterator($number + 1, $number + 1)->current();
 		$this->setObjectPropertiesByRow($newObject, $row);
 		return $newObject;
@@ -151,74 +151,62 @@ class SpreadsheetImportService {
 		$totalInserted = 0;
 		$totalUpdated = 0;
 		$totalDeleted = 0;
-		$totalSkipped = 0;
-		$objectIds = array();
-		$domain = $this->domain;
+		$processedObjectIds = array();
 		$objectRepository = $this->getDomainRepository();
-		$objectValidator = $this->validatorResolver->getBaseValidatorConjunction($domain);
+		$objectValidator = $this->validatorResolver->getBaseValidatorConjunction($this->domain);
 		$identifierProperties = $this->getDomainMappingIdentifierProperties();
 		$sheet = $this->getFileActiveSheet();
-		$numberOfRecordsToPersist = $this->settings['numberOfRecordsToPersist'];
-		$i = 0;
+		$persistRecordsChunkSize = intval($this->settings['persistRecordsChunkSize']);
+		$totalCount = 0;
 		/** @var \PHPExcel_Worksheet_Row $row */
 		foreach ($sheet->getRowIterator(2) as $row) {
+			$totalCount++;
 			$object = $this->findObjectByIdentifierPropertiesPerRow($identifierProperties, $row);
 			if (is_object($object)) {
-				$objectIds[] = $this->persistenceManager->getIdentifierByObject($object);
+				$processedObjectIds[] = $this->persistenceManager->getIdentifierByObject($object);
 				if ($this->spreadsheetImport->isUpdating()) {
 					$this->setObjectPropertiesByRow($object, $row);
 					$validationResult = $objectValidator->validate($object);
 					if ($validationResult->hasErrors()) {
-						$totalSkipped++;
 						continue;
 					}
 					$objectRepository->update($object);
 					$totalUpdated++;
-					$i++;
 				} else {
-					$totalSkipped++;
 					continue;
 				}
 			} elseif ($this->spreadsheetImport->isInserting()) {
-				$newObject = new $domain;
+				$newObject = new $this->domain;
 				$this->setObjectPropertiesByRow($newObject, $row);
 				$validationResult = $objectValidator->validate($newObject);
 				if ($validationResult->hasErrors()) {
-					$totalSkipped++;
 					continue;
 				}
 				$objectRepository->add($newObject);
-				$objectIds[] = $this->persistenceManager->getIdentifierByObject($newObject);
+				$processedObjectIds[] = $this->persistenceManager->getIdentifierByObject($newObject);
 				$totalInserted++;
-				$i++;
 			} else {
-				$totalSkipped++;
 				continue;
 			}
-			if ($i >= $numberOfRecordsToPersist) {
+			if ($totalCount % $persistRecordsChunkSize === 0) {
 				$this->persistenceManager->persistAll();
-				$i = 0;
 			}
 		}
-
-		// remove objects which are not exist on the spreadsheet
+		$deleteCount = 0;
 		if ($this->spreadsheetImport->isDeleting()) {
-			$notExistingObjects = $this->findObjectsByExcludedIds($objectIds);
+			$notExistingObjects = $this->findObjectsByExcludedIds($processedObjectIds);
 			foreach ($notExistingObjects as $object) {
 				$objectRepository->remove($object);
-				$totalDeleted++;
-				$i++;
-				if ($i >= $numberOfRecordsToPersist) {
+				if (++$deleteCount % $persistRecordsChunkSize === 0) {
 					$this->persistenceManager->persistAll();
-					$i = 0;
 				}
 			}
 		}
-
+		$this->persistenceManager->persistAll();
 		$this->spreadsheetImport->setTotalInserted($totalInserted);
 		$this->spreadsheetImport->setTotalUpdated($totalUpdated);
+		$this->spreadsheetImport->setTotalSkipped($totalCount - $totalInserted - $totalUpdated);
 		$this->spreadsheetImport->setTotalDeleted($totalDeleted);
-		$this->spreadsheetImport->setTotalSkipped($totalSkipped);
 	}
 
 	/**

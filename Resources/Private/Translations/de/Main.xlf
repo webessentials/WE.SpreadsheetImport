@@ -44,10 +44,10 @@
 				<source>Ungültige Daten. Dieser Record wird nicht übersprungen.</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.preview.record">
-				<source>Vorschau Zeile</source>
+				<source>Zeile</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.list">
-				<source>Spreadsheet Imports</source>
+				<source>Importe</source>
 			</trans-unit>
 
 			<!-- Status -->

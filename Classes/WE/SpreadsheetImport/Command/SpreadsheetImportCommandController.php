@@ -46,12 +46,12 @@ class SpreadsheetImportCommandController extends CommandController {
 	protected $settings;
 
 	/**
-	 * Import one pending queued spreadsheet into Domain data, and it will import the next one if it is done
+	 * Import next queued spreadsheets into domain objects asynchronously.
 	 */
 	public function importCommand() {
 		$currentImportingCount = $this->spreadsheetImportRepository->countByImportingStatus(SpreadsheetImport::IMPORTING_STATUS_IN_PROGRESS);
 		if ($currentImportingCount > 0) {
-			$this->outputFormatted('There is a progressing importing spreadsheet.');
+			$this->outputFormatted('Previous spreadsheet import is still in progress.');
 			$this->quit();
 		}
 		/** @var SpreadsheetImport $spreadsheetImport */
@@ -67,25 +67,25 @@ class SpreadsheetImportCommandController extends CommandController {
 			try {
 				$this->spreadsheetImportService->import();
 				$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_COMPLETED);
-				$this->outputFormatted('Spreadsheet has been imported. (totalInserted: %d, totalUpdated: %d, totalDeleted: %d, totalSkipped: %d)',
+				$this->outputFormatted('Spreadsheet has been imported. %d inserted, %d updated, %d deleted, %d skipped',
 					array($spreadsheetImport->getTotalInserted(), $spreadsheetImport->getTotalUpdated(), $spreadsheetImport->getTotalDeleted(), $spreadsheetImport->getTotalSkipped()));
 			} catch (Exception $e) {
 				$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_FAILED);
-				$this->outputFormatted('Spreadsheet imported failed.');
+				$this->outputFormatted('Spreadsheet import failed.');
 			}
 			$this->spreadsheetImportRepository->update($spreadsheetImport);
 		} else {
-			$this->outputFormatted('There is no spreadsheet importing in queue.');
+			$this->outputFormatted('No spreadsheet import in queue.');
 		}
 	}
 
 	/**
-	 * Cleanup previous spreadsheet imports by specific time (defined by settings)
+	 * Cleanup previous spreadsheet imports. Threashold defined in settings.
 	 */
 	public function cleanupCommand() {
-		$cleanupImportFromPreviousDay = $this->settings['cleanupImportFromPreviousDay'];
+		$cleanupImportsThreasholdDays = intval($this->settings['cleanupImportsThreasholdDays']);
 		$cleanupFromDate = new \DateTime();
-		$cleanupFromDate->sub(new \DateInterval('P' . $cleanupImportFromPreviousDay . 'D'));
+		$cleanupFromDate->sub(new \DateInterval('P' . $cleanupImportsThreasholdDays . 'D'));
 		$oldSpreadsheetImports = $this->spreadsheetImportRepository->findPreviousImportsBySpecificDate($cleanupFromDate);
 		if ($oldSpreadsheetImports->count() > 0) {
 			/** @var SpreadsheetImport $oldSpreadsheetImport */

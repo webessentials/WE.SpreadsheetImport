@@ -44,10 +44,10 @@
 				<source>Invalid data. This record will be skipped.</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.preview.record">
-				<source>Preview record</source>
+				<source>Record</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.list">
-				<source>Spreadsheet Imports</source>
+				<source>Imports</source>
 			</trans-unit>
 
 			<!-- Status -->

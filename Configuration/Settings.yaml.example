@@ -1,7 +1,7 @@
 WE:
   SpreadsheetImport:
-    cleanupImportFromPreviousDay: 365
-    numberOfRecordsToPersist: 100
+    cleanupImportsThreasholdDays: 365
+    persistRecordsChunkSize: 100
     default:
       domain: WE\Sample\Domain\Model\User
       arguments:
