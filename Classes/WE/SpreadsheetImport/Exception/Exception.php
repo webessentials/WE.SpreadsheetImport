@@ -1,5 +1,5 @@
 <?php
-namespace WE\SpreadsheetImport\Domain\Model;
+namespace WE\SpreadsheetImport\Exception;
 
 /*                                                                        *
  * This script belongs to the Flow package "SpreadsheetImport".           *
@@ -11,25 +11,8 @@ namespace WE\SpreadsheetImport\Domain\Model;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-interface SpreadsheetImportTargetInterface {
-
-	/**
-	 * @param boolean $updated
-	 *
-	 * @return void
-	 */
-	public function setUpdated($updated);
-
-	/**
-	 * @param \DateTime $lastUpdated
-	 *
-	 * @return void
-	 */
-	public function isUpdated($lastUpdated);
-
-	/**
-	 * @return array
-	 */
-	public static function getAdditionalProperties();
-
+/**
+ * Generic SpreadsheetImport Exception
+ */
+class Exception extends \TYPO3\Flow\Exception  {
 }

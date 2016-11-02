@@ -1,0 +1,76 @@
+<f:if condition="{spreadsheetImports}">
+	<h2><f:translate id="label.spreadsheet_import.list" /></h2>
+	<table>
+		<thead>
+			<tr>
+				<th><f:translate id="label.spreadsheet_import.schedule" /></th>
+				<th><f:translate id="label.spreadsheet_import.importingStatus" /></th>
+				<th><f:translate id="label.spreadsheet_import.file" /></th>
+				<th><f:translate id="label.spreadsheet_import.inserting" /></th>
+				<th><f:translate id="label.spreadsheet_import.updating" /></th>
+				<th><f:translate id="label.spreadsheet_import.deleting" /></th>
+				<th align="right"><f:translate id="label.spreadsheet_import.totalInserted" /></th>
+				<th align="right"><f:translate id="label.spreadsheet_import.totalUpdated" /></th>
+				<th align="right"><f:translate id="label.spreadsheet_import.totalDeleted" /></th>
+				<th align="right"><f:translate id="label.spreadsheet_import.totalSkipped" /></th>
+				<th></th>
+			</tr>
+		</thead>
+		<f:for each="{spreadsheetImports}" as="spreadsheetImport">
+			<tr>
+				<td><f:format.date format="d.m.Y H:i">{spreadsheetImport.scheduleDate}</f:format.date></td>
+				<td><f:render section="renderStatus" arguments="{status: spreadsheetImport.importingStatus}" /></td>
+				<td><a href="{f:uri.resource(resource: spreadsheetImport.file)}" title="{spreadsheetImport.file.filename}">{spreadsheetImport.file.filename}</a></td>
+				<td><f:if condition="{spreadsheetImport.inserting}">&#10003;</f:if></td>
+				<td><f:if condition="{spreadsheetImport.updating}">&#10003;</f:if></td>
+				<td><f:if condition="{spreadsheetImport.deleting}">&#10003;</f:if></td>
+				<td align="right">{spreadsheetImport.totalInserted}</td>
+				<td align="right">{spreadsheetImport.totalUpdated}</td>
+				<td align="right">{spreadsheetImport.totalDeleted}</td>
+				<td align="right">{spreadsheetImport.totalSkipped}</td>
+				<td>
+					<span class="action-icons pull-right">
+						<f:link.action action="mapping" arguments="{spreadsheetImport: spreadsheetImport}" title="{f:translate(id: 'label.spreadsheet_import.mapping')}">
+							<f:translate id="label.spreadsheet_import.action.mapping" />
+						</f:link.action>
+						<f:if condition="{spreadsheetImport.importingStatus} <= 1">
+							<f:form action="delete" arguments="{spreadsheetImport: spreadsheetImport}">
+								<button type="submit"><f:translate id="label.spreadsheet_import.action.delete" /></button>
+							</f:form>
+						</f:if>
+					</span>
+				</td>
+			</tr>
+		</f:for>
+	</table>
+</f:if>
+
+<f:section name="renderStatus">
+	<f:switch expression="{status}">
+		<f:case value="0">
+			<span class="label status-label status-draft">
+				<f:translate id="label.spreadsheet_import.importingStatus.draft" />
+			</span>
+		</f:case>
+		<f:case value="1">
+			<span class="label status-label status-queued">
+				<f:translate id="label.spreadsheet_import.importingStatus.inQueue" />
+			</span>
+		</f:case>
+		<f:case value="2">
+			<span class="label status-label status-progressing">
+				<f:translate id="label.spreadsheet_import.importingStatus.inProgress" />
+			</span>
+		</f:case>
+		<f:case value="3">
+			<span class="label status-label status-complete">
+				<f:translate id="label.spreadsheet_import.importingStatus.completed" />
+			</span>
+		</f:case>
+		<f:case value="4">
+			<span class="label status-label status-failed">
+				<f:translate id="label.spreadsheet_import.importingStatus.failed" />
+			</span>
+		</f:case>
+	</f:switch>
+</f:section>

@@ -18,7 +18,7 @@ use WE\SpreadsheetImport\Domain\Model\SpreadsheetImportTargetInterface;
 /**
  * @Flow\Entity
  */
-class ImportTarget implements SpreadsheetImportTargetInterface {
+class ImportTarget {
 
 	/**
 	 * @var string
@@ -65,17 +65,5 @@ class ImportTarget implements SpreadsheetImportTargetInterface {
 	 */
 	public function setName($name) {
 		$this->name = $name;
-	}
-
-	public function setUpdated($updated) {
-		// TODO: Implement setUpdated() method.
-	}
-
-	public function isUpdated($lastUpdated) {
-		// TODO: Implement isUpdated() method.
-	}
-
-	public static function getAdditionalProperties() {
-		// TODO: Implement getAdditionalProperties() method.
 	}
 }

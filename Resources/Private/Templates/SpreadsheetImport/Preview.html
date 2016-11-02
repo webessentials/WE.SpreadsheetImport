@@ -1,0 +1,37 @@
+<f:layout name="Default" />
+
+<f:section name="Content">
+	<h1><f:translate id="label.spreadsheet_import.preview" /></h1>
+	<f:if condition="{hasErrors}">
+		<div><f:translate id="label.spreadsheet_import.preview.invalid_record" /></div>
+	</f:if>
+	<div>
+		<div>
+			<f:if condition="{record} > 1">
+				<f:link.action action="preview" arguments="{record: previous, spreadsheetImport: spreadsheetImport}">&lt;</f:link.action>
+			</f:if>
+			<f:translate id="label.spreadsheet_import.preview.record" /> {record}
+			<f:if condition="{record} < {total}">
+				<f:link.action action="preview" arguments="{record: next, spreadsheetImport: spreadsheetImport}">&gt;</f:link.action>
+			</f:if>
+		</div>
+	</div>
+	<f:form action="confirm">
+		<f:form.hidden name="spreadsheetImport" value="{spreadsheetImport}"/>
+		<f:for each="{preview}" key="property" as="previewMapping">
+			<div>
+				<label>
+					<f:if condition="{previewMapping.mapping.labelId}">
+						<f:then><f:translate id="{previewMapping.mapping.labelId}" />:</f:then>
+						<f:else>{property}:</f:else>
+					</f:if>
+				</label>
+				<div class="{f:if(condition: previewMapping.error, then: 'error-text')}">{previewMapping.value}</div>
+			</div>
+		</f:for>
+		<div>
+			<f:form.submit value="<f:translate id='label.spreadsheet_import.action.create'/>" />
+			<f:link.action action="cancel" arguments="{spreadsheetImport: spreadsheetImport}"> <f:translate id="label.spreadsheet_import.action.cancel" /></f:link.action>
+		</div>
+	</f:form>
+</f:section>

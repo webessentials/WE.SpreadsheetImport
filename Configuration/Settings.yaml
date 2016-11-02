@@ -1,12 +1,4 @@
 WE:
   SpreadsheetImport:
-    cleanupImportFromPreviousDay: 5
+    cleanupImportFromPreviousDay: 365
     numberOfRecordsToPersist: 100
-    swisscomGrb:
-        domain: WE\KIME\Domain\Model\User
-        Configuration:
-          userProfileType:
-            setter: convertUserProfileTypeBySysValue
-            value: 'swisscomGRB'
-          privacy:
-            value: 'private'

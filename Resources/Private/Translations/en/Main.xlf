@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+	<file original="" source-language="en" datatype="plaintext">
+		<body>
+			<trans-unit id="label.spreadsheet_import.action.next">
+				<source>Next</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.action.cancel">
+				<source>Cancel</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.action.create">
+				<source>Create</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.action.mapping">
+				<source>View</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.action.delete">
+				<source>Delete</source>
+			</trans-unit>
+
+			<!-- Views -->
+			<trans-unit id="label.spreadsheet_import.new">
+				<source>New Spreadsheet Import</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.new.import_actions">
+				<source>Actions</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.new.import_actions_inserting">
+				<source>Insert new records</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.new.import_actions_updating">
+				<source>Insert new and update existing records</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.new.import_actions_deleting">
+				<source>Insert new, update existing, and delete not existing records</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.mapping">
+				<source>Column Mapping</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.preview">
+				<source>Import Preview</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.preview.invalid_record">
+				<source>Invalid data. This record will be skipped.</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.preview.record">
+				<source>Preview record</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.list">
+				<source>Spreadsheet Imports</source>
+			</trans-unit>
+
+			<!-- Status -->
+			<trans-unit id="label.spreadsheet_import.importingStatus">
+				<source>Status</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.importingStatus.draft">
+				<source>Draft</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.importingStatus.inQueue">
+				<source>In Queue</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.importingStatus.inProgress">
+				<source>In Progress</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.importingStatus.completed">
+				<source>Completed</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.importingStatus.failed">
+				<source>Failed</source>
+			</trans-unit>
+
+			<!-- SpreadsheetImport Model -->
+			<trans-unit id="label.spreadsheet_import.file">
+				<source>File</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.schedule">
+				<source>Schedule Date</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.schedule_time">
+				<source>Schedule Time</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.inserting">
+				<source>Insert</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.updating">
+				<source>Update</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.deleting">
+				<source>Delete</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.totalInserted">
+				<source>Total Inserted</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.totalUpdated">
+				<source>Total Updated</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.totalDeleted">
+				<source>Total Deleted</source>
+			</trans-unit>
+			<trans-unit id="label.spreadsheet_import.totalSkipped">
+				<source>Total Skipped</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>
