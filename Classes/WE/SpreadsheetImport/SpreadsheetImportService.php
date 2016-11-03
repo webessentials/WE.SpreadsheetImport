@@ -69,11 +69,20 @@ class SpreadsheetImportService {
 	protected $validatorResolver;
 
 	/**
-	 * Inverse SpreadsheetImport mapping array
+	 * Inverse array of SpreadsheetDomain mapping array property. Always use the getter function, which will process the
+	 * property in case it is not set.
 	 *
 	 * @var array
 	 */
 	private $inverseSpreadsheetImportMapping;
+
+	/**
+	 * Identifier properties of SpreadsheetDomain mapping array. Always use the getter function, which will process the
+	 * property in case it is not set.
+	 *
+	 * @var array
+	 */
+	private $mappingIdentifierProperties;
 
 	/**
 	 * @param \WE\SpreadsheetImport\Domain\Model\SpreadsheetImport $spreadsheetImport
@@ -81,6 +90,8 @@ class SpreadsheetImportService {
 	 * @return $this
 	 */
 	public function init(SpreadsheetImport $spreadsheetImport) {
+		$this->inverseSpreadsheetImportMapping = array();
+		$this->mappingIdentifierProperties = array();
 		$this->spreadsheetImport = $spreadsheetImport;
 		$this->domain = $this->settings[$spreadsheetImport->getContext()]['domain'];
 
@@ -154,14 +165,13 @@ class SpreadsheetImportService {
 		$processedObjectIds = array();
 		$objectRepository = $this->getDomainRepository();
 		$objectValidator = $this->validatorResolver->getBaseValidatorConjunction($this->domain);
-		$identifierProperties = $this->getDomainMappingIdentifierProperties();
 		$sheet = $this->getFileActiveSheet();
 		$persistRecordsChunkSize = intval($this->settings['persistRecordsChunkSize']);
 		$totalCount = 0;
 		/** @var \PHPExcel_Worksheet_Row $row */
 		foreach ($sheet->getRowIterator(2) as $row) {
 			$totalCount++;
-			$object = $this->findObjectByIdentifierPropertiesPerRow($identifierProperties, $row);
+			$object = $this->findObjectByIdentifierPropertiesPerRow($row);
 			if (is_object($object)) {
 				$processedObjectIds[] = $this->persistenceManager->getIdentifierByObject($object);
 				if ($this->spreadsheetImport->isUpdating()) {
@@ -232,37 +242,36 @@ class SpreadsheetImportService {
 	/**
 	 * @return array
 	 */
-	private function getDomainMappingIdentifierProperties() {
-		// TODO: Don't use the annotation properties but the SpreadsheetImport mapping since we store the Mapping object there as well
-		$domainMappingProperties = array();
-		$properties = $this->reflectionService->getPropertyNamesByAnnotation($this->domain, Mapping::class);
-		foreach ($properties as $property) {
-			/** @var Mapping $mapping */
-			$mapping = $this->reflectionService->getPropertyAnnotation($this->domain, $property, Mapping::class);
-			if ($mapping->identifier) {
-				$domainMappingProperties[$property] = $mapping;
+	private function getMappingIdentifierProperties() {
+		if (empty($this->mappingIdentifierProperties)) {
+			foreach ($this->spreadsheetImport->getMapping() as $property => $columnMapping) {
+				/** @var Mapping $mapping */
+				$mapping = $columnMapping['mapping'];
+				if ($mapping->identifier) {
+					$this->mappingIdentifierProperties[$property] = $columnMapping;
+				}
 			}
 		}
-		return $domainMappingProperties;
+		return $this->mappingIdentifierProperties;
 	}
 
 	/**
-	 * @param array $identifierProperties
 	 * @param \PHPExcel_Worksheet_Row $row
 	 *
 	 * @return null|object
 	 */
-	private function findObjectByIdentifierPropertiesPerRow(array $identifierProperties, \PHPExcel_Worksheet_Row $row) {
+	private function findObjectByIdentifierPropertiesPerRow(\PHPExcel_Worksheet_Row $row) {
 		$query = $this->getDomainRepository()->createQuery();
 		$constraints = array();
-		$spreadsheetImportMapping = $this->spreadsheetImport->getMapping();
-		/** @var Mapping $mapping */
-		foreach ($identifierProperties as $property => $mapping) {
-			$column = $spreadsheetImportMapping[$property]['column'];
+		$identifierProperties = $this->getMappingIdentifierProperties();
+		foreach ($identifierProperties as $property => $columnMapping) {
+			$column = $columnMapping['column'];
+			/** @var Mapping $mapping */
+			$mapping = $columnMapping['mapping'];
+			$propertyName = $mapping->queryPropertyName ?: $property;
 			/** @var \PHPExcel_Worksheet_RowCellIterator $cellIterator */
 			$cellIterator = $row->getCellIterator($column, $column);
 			$value = $cellIterator->current()->getValue();
-			$propertyName = $mapping->queryPropertyName ?: $property;
 			$constraints[] = $query->equals($propertyName, $value);
 		}
 		$this->mergeQueryConstraintsWithArgumentIdentifiers($query, $constraints);
@@ -294,6 +303,18 @@ class SpreadsheetImportService {
 	}
 
 	/**
+	 * @param array $identifiers
+	 *
+	 * @return \TYPO3\Flow\Persistence\QueryResultInterface
+	 */
+	private function findObjectsByExcludedIds(array $identifiers) {
+		$query = $this->getDomainRepository()->createQuery();
+		$constraints[] = $query->logicalNot($query->in('Persistence_Object_Identifier', $identifiers));
+		$this->mergeQueryConstraintsWithArguments($query, $constraints);
+		return $query->matching($query->logicalAnd($constraints))->execute();
+	}
+
+	/**
 	 * @param \TYPO3\Flow\Persistence\QueryInterface $query
 	 * @param array $constraints
 	 */
@@ -312,56 +333,14 @@ class SpreadsheetImportService {
 	}
 
 	/**
-	 * @param array $identifiers
-	 *
-	 * @return \TYPO3\Flow\Persistence\QueryResultInterface
-	 */
-	private function findObjectsByExcludedIds(array $identifiers) {
-		$query = $this->getDomainRepository()->createQuery();
-		$constraints[] = $query->logicalNot($query->in('Persistence_Object_Identifier', $identifiers));
-		$this->mergeQueryConstraintsWithArguments($query, $constraints);
-		return $query->matching($query->logicalAnd($constraints))->execute();
-	}
-
-	/**
 	 * @param object $object
 	 * @param \PHPExcel_Worksheet_Row $row
 	 */
 	private function setObjectPropertiesByRow($object, $row) {
-		// Set the arguments first as mapping property setters might be dependent on argument properties
+		/* Set the argument properties before the mapping properties, as mapping property setters might be dependent on
+		argument property values */
 		$this->setObjectArgumentProperties($object);
-		$inverseSpreadsheetImportMapping = $this->getInverseSpreadsheetImportMapping();
-		/** @var \PHPExcel_Cell $cell */
-		foreach ($row->getCellIterator() as $cell) {
-			$column = $cell->getColumn();
-			if (array_key_exists($column, $inverseSpreadsheetImportMapping)) {
-				$properties = $inverseSpreadsheetImportMapping[$column];
-				foreach ($properties as $propertyMapping) {
-					$property = $propertyMapping['property'];
-					/** @var Mapping $mapping */
-					$mapping = $propertyMapping['mapping'];
-					$setter = empty($mapping->setter) ? 'set' . ucfirst($property) : $mapping->setter;
-					$object->$setter($cell->getValue());
-				}
-			}
-		}
-	}
-
-	/**
-	 * Return an inverse SpreadsheetImport mapping array. It flips the property and column attribute and returns it as a
-	 * 3-dim array instead of a 2-dim array. The reason for that is the case when the same column is assigned to multiple
-	 * properties.
-	 */
-	private function getInverseSpreadsheetImportMapping() {
-		if (empty($this->inverseSpreadsheetImportMapping)) {
-			$this->inverseSpreadsheetImportMapping = array();
-			foreach ($this->spreadsheetImport->getMapping() as $property => $columnMapping) {
-				$column = $columnMapping['column'];
-				$propertyMapping = array('property' => $property, 'mapping' => $columnMapping['mapping']);
-				$this->inverseSpreadsheetImportMapping[$column][] = $propertyMapping;
-			}
-		}
-		return $this->inverseSpreadsheetImportMapping;
+		$this->setObjectSpreadsheetImportMappingProperties($object, $row);
 	}
 
 	/**
@@ -384,5 +363,44 @@ class SpreadsheetImportService {
 				}
 			}
 		}
+	}
+
+	/**
+	 * @param object $object
+	 * @param \PHPExcel_Worksheet_Row $row
+	 */
+	private function setObjectSpreadsheetImportMappingProperties($object, $row) {
+		$inverseSpreadsheetImportMapping = $this->getInverseSpreadsheetImportMapping();
+		/** @var \PHPExcel_Cell $cell */
+		foreach ($row->getCellIterator() as $cell) {
+			$column = $cell->getColumn();
+			if (array_key_exists($column, $inverseSpreadsheetImportMapping)) {
+				$properties = $inverseSpreadsheetImportMapping[$column];
+				foreach ($properties as $propertyMapping) {
+					$property = $propertyMapping['property'];
+					/** @var Mapping $mapping */
+					$mapping = $propertyMapping['mapping'];
+					$setter = empty($mapping->setter) ? 'set' . ucfirst($property) : $mapping->setter;
+					$object->$setter($cell->getValue());
+				}
+			}
+		}
+	}
+
+	/**
+	 * Return an inverse SpreadsheetImport mapping array. It flips the property and column attribute and returns it as a
+	 * 3-dim array instead of a 2-dim array. This is done for the case when the same column is assigned to multiple
+	 * properties.
+	 */
+	private function getInverseSpreadsheetImportMapping() {
+		if (empty($this->inverseSpreadsheetImportMapping)) {
+			$this->inverseSpreadsheetImportMapping = array();
+			foreach ($this->spreadsheetImport->getMapping() as $property => $columnMapping) {
+				$column = $columnMapping['column'];
+				$propertyMapping = array('property' => $property, 'mapping' => $columnMapping['mapping']);
+				$this->inverseSpreadsheetImportMapping[$column][] = $propertyMapping;
+			}
+		}
+		return $this->inverseSpreadsheetImportMapping;
 	}
 }
