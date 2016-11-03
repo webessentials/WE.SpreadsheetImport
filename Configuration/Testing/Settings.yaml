@@ -1,5 +1,7 @@
 WE:
   SpreadsheetImport:
     testing:
-      domain: WE\SpreadsheetImport\Tests\Functional\Fixtures\ImportTarget
-      arguments: ~
+      domain: WE\SpreadsheetImport\Tests\Functional\Fixtures\Domain\Model\ImportTarget
+      arguments:
+        - { name: category, domain: 'WE\SpreadsheetImport\Tests\Functional\Fixtures\Domain\Model\ImportTargetCategory', identifier: TRUE }
+        - { name: comment, static: 'Sample import' }

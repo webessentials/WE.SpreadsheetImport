@@ -166,7 +166,11 @@ class SpreadsheetImport {
 	 * @return array
 	 */
 	public function getArguments() {
-		return unserialize($this->arguments);
+		$arguments = unserialize($this->arguments);
+		if (! is_array($arguments)) {
+			$arguments = array();
+		}
+		return $arguments;
 	}
 
 	/**

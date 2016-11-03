@@ -17,7 +17,8 @@ use TYPO3\Flow\Tests\FunctionalTestCase;
 use WE\SpreadsheetImport\Annotations\Mapping;
 use WE\SpreadsheetImport\Domain\Model\SpreadsheetImport;
 use WE\SpreadsheetImport\SpreadsheetImportService;
-use WE\SpreadsheetImport\Tests\Functional\Fixtures\ImportTarget;
+use WE\SpreadsheetImport\Tests\Functional\Fixtures\Domain\Model\ImportTarget;
+use WE\SpreadsheetImport\Tests\Functional\Fixtures\Domain\Model\ImportTargetCategory;
 
 class SpreadsheetImportServiceTest extends FunctionalTestCase {
 
@@ -41,19 +42,17 @@ class SpreadsheetImportServiceTest extends FunctionalTestCase {
 
 		$reflectionService = $this->objectManager->get(ReflectionService::class);
 		$this->inject($this->spreadsheetImportService, 'reflectionService', $reflectionService);
-
-		$this->initializeSpreadsheetMock();
 	}
 
 	/**
 	 * @return void
 	 */
 	public function tearDown() {
-		$persistenceManager = self::$bootstrap->getObjectManager()->get('TYPO3\Flow\Persistence\PersistenceManagerInterface');
+		$persistenceManager = $this->objectManager->get('TYPO3\Flow\Persistence\PersistenceManagerInterface');
 		if (is_callable(array($persistenceManager, 'tearDown'))) {
 			$persistenceManager->tearDown();
 		}
-		self::$bootstrap->getObjectManager()->forgetInstance('TYPO3\Flow\Persistence\PersistenceManagerInterface');
+		$this->objectManager->forgetInstance('TYPO3\Flow\Persistence\PersistenceManagerInterface');
 		parent::tearDown();
 	}
 
@@ -62,47 +61,75 @@ class SpreadsheetImportServiceTest extends FunctionalTestCase {
 		$spreadsheetImport->setContext('testing');
 		$resource = $this->resourceManager->importResource(__DIR__ . '/Fixtures/Resources/sample.xlsx');
 		$spreadsheetImport->setFile($resource);
-		$idMapping = array('column' => 'C', 'mapping' => new Mapping());
-		$nameMapping = array('column' => 'A', 'mapping' => new Mapping());
-		$spreadsheetImport->setMapping(array('id' => $idMapping, 'name' => $nameMapping));
 		$this->spreadsheetImportService->init($spreadsheetImport);
+
+		return $spreadsheetImport;
+	}
+
+	private function initializeConfiguredSpreadsheetMock() {
+		$spreadsheetImport = $this->initializeSpreadsheetMock();
+		$annotationMappings = $this->spreadsheetImportService->getAnnotationMappingProperties();
+		$spreadsheetImport->setMapping(array(
+			'id' => array('column' => 'C', 'mapping' => $annotationMappings['id']),
+			'firstName' => array('column' => 'A', 'mapping' => $annotationMappings['firstName']),
+			'lastName' => array('column' => 'B', 'mapping' => $annotationMappings['lastName']),
+			'account' => array('column' => 'C', 'mapping' => $annotationMappings['account'])));
+		$spreadsheetImport->setArguments(array(
+			'category' => new ImportTargetCategory(), // Could also simply assign the UUID
+			'comment' => 'Sample import'
+		));
 	}
 
 	/**
 	 * @test
 	 */
-	public function getMappingPropertiesReturnsPropertiesWithMappingAnnotation() {
+	public function getAnnotationMappingPropertiesReturnsArrayMappingAnnotation() {
+		$this->initializeSpreadsheetMock();
 		$properties = $this->spreadsheetImportService->getAnnotationMappingProperties();
 		$this->assertArrayHasKey('id', $properties);
-		$this->assertArrayHasKey('name', $properties);
+		$this->assertArrayHasKey('firstName', $properties);
 		/** @var Mapping $id */
 		$id = $properties['id'];
-		/** @var Mapping $name */
-		$name = $properties['name'];
+		/** @var Mapping $firstName */
+		$firstName = $properties['firstName'];
 		$this->assertSame(TRUE, $id->identifier);
-		$this->assertSame(FALSE, $name->identifier);
+		$this->assertSame(FALSE, $firstName->identifier);
+	}
+
+	/**
+	 * @test
+	 */
+	public function getTotalRecordsRecordsNumberOfObjectsToImport() {
+		$this->initializeSpreadsheetMock();
+		$this->assertSame(2, $this->spreadsheetImportService->getTotalRecords());
 	}
 
 	/**
 	 * @test
 	 */
 	public function getSpreadsheetColumnsReturnsColumnsWithHeadings() {
+		$this->initializeSpreadsheetMock();
 		$columns = $this->spreadsheetImportService->getSpreadsheetColumns();
 		$this->assertArrayHasKey('A', $columns);
 		$this->assertArrayHasKey('B', $columns);
 		$this->assertArrayHasKey('C', $columns);
-		$this->assertContains('name', $columns);
-		$this->assertContains('lastname', $columns);
-		$this->assertContains('id', $columns);
+		$this->assertSame('firstname', $columns['A']);
+		$this->assertSame('name', $columns['B']);
+		$this->assertSame('id', $columns['C']);
 	}
 
 	/**
 	 * @test
 	 */
 	public function getObjectByRowOneReturnsImportTargetWithSetProperties() {
+		$this->initializeConfiguredSpreadsheetMock();
 		/** @var ImportTarget $object */
 		$object = $this->spreadsheetImportService->getObjectByRow(1);
-		$this->assertEquals('00001', $object->getId());
-		$this->assertEquals('Hans', $object->getName());
+		$this->assertSame('00001', $object->getId());
+		$this->assertSame('Hans', $object->getFirstName());
+		$this->assertSame('Muster', $object->getLastName());
+		$this->assertSame('001', $object->getAccount());
+		$this->assertInstanceOf(ImportTargetCategory::class, $object->getCategory());
+		$this->assertSame('Sample import', $object->getComment());
 	}
 }
