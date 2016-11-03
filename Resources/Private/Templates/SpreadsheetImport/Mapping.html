@@ -1,0 +1,43 @@
+<f:layout name="Default" />
+
+<f:section name="Content">
+	<h1><f:translate id="label.spreadsheet_import.mapping" /></h1>
+	<f:form action="map">
+		<f:form.hidden name="spreadsheetImport" value="{spreadsheetImport}"/>
+		<f:form.hidden name="event" value="{event}" />
+		<f:for each="{domainMappingProperties}" key="property" as="columnMapping">
+			<div>
+				<label for="{property}">
+					<f:if condition="{columnMapping.mapping.labelId}">
+						<f:then><f:translate id="{columnMapping.mapping.labelId}" /></f:then>
+						<f:else>{property}</f:else>
+					</f:if>
+					<f:if condition="{columnMapping.mapping.identifier}">
+						<span class="require"> * </span>
+					</f:if>
+				</label>
+				<div>
+					<f:if condition="{spreadsheetImport.importingStatus} == 0">
+						<f:then>
+							<f:if condition="{columnMapping.mapping.identifier}">
+								<f:then>
+									<f:form.select name="{property}" options="{spreadsheetColumns}" prependOptionLabel="{f:translate(id: 'label.please_select')}" value="{columnMapping.column}" additionalAttributes="{required: 1}" />
+								</f:then>
+								<f:else>
+									<f:form.select name="{property}" options="{spreadsheetColumns}" prependOptionLabel="{f:translate(id: 'label.please_select')}" value="{columnMapping.column}" />
+								</f:else>
+							</f:if>
+						</f:then>
+						<f:else>
+							<f:form.select name="{property}" options="{spreadsheetColumns}" prependOptionLabel="{f:translate(id: 'label.please_select')}" value="{columnMapping.column}" additionalAttributes="{disabled: 1}" />
+						</f:else>
+					</f:if>
+				</div>
+			</div>
+		</f:for>
+		<div>
+			<f:form.submit value="<f:translate id='label.spreadsheet_import.action.next'/>"/>
+			<f:link.action action="cancel" arguments="{spreadsheetImport: spreadsheetImport}"> <f:translate id="label.spreadsheet_import.action.cancel" /></f:link.action>
+		</div>
+	</f:form>
+</f:section>

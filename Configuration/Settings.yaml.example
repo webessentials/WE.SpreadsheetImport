@@ -1,0 +1,9 @@
+WE:
+  SpreadsheetImport:
+    cleanupImportsThreasholdDays: 365
+    persistRecordsChunkSize: 100
+    default:
+      domain: WE\Sample\Domain\Model\User
+      arguments:
+        - { name: category, domain: 'WE\Sample\Domain\Model\UserCategory', identifier: TRUE }
+        - { name: comment, static: 'Sample import' }

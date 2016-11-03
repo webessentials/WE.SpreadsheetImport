@@ -15,6 +15,7 @@ use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Mvc\ActionRequest;
 use WE\SpreadsheetImport\Annotations\Mapping;
 use WE\SpreadsheetImport\Domain\Model\SpreadsheetImport;
+use WE\SpreadsheetImport\Exception\Exception;
 
 /**
  * Service class of basic FE mapping functionality for simple usage on separate implementations.
@@ -57,10 +58,14 @@ class FrontendMappingService {
 	 * @param string $context
 	 * @param \TYPO3\Flow\Mvc\ActionRequest $request
 	 *
+	 * @throws \WE\SpreadsheetImport\Exception\Exception
 	 * @return array
 	 */
 	public function getContextArgumentsForRequest($context, ActionRequest $request) {
 		$arguments = array();
+		if (! isset($this->settings[$context]) || ! isset($this->settings[$context]['arguments'])) {
+			throw new Exception('Context with arguments needs to be configured in the Settings', 1478069710);
+		}
 		$contextArguments = $this->settings[$context]['arguments'];
 		if (is_array($contextArguments)) {
 			foreach ($contextArguments as $contextArgument) {
@@ -101,13 +106,18 @@ class FrontendMappingService {
 
 	/**
 	 * @param \WE\SpreadsheetImport\Domain\Model\SpreadsheetImport $spreadsheetImport
-	 * @param $record
+	 * @param int $record
 	 *
+	 * @throws \WE\SpreadsheetImport\Exception\Exception
 	 * @return array
 	 */
 	public function getMappingPreview(SpreadsheetImport $spreadsheetImport, $record) {
 		$mapping = $spreadsheetImport->getMapping();
-		$domain = $this->settings[$spreadsheetImport->getContext()]['domain'];
+		$context = $spreadsheetImport->getContext();
+		if (! isset($this->settings[$context]) || ! isset($this->settings[$context]['arguments'])) {
+			throw new Exception('Context with arguments needs to be configured in the Settings', 1478069743);
+		}
+		$domain = $this->settings[$context]['domain'];
 		$record = max($record, 1);
 		$previewObject = $this->spreadsheetImportService->getObjectByRow($record);
 		$preview = array();

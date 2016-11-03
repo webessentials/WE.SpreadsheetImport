@@ -12,7 +12,7 @@ namespace WE\SpreadsheetImport\Annotations;
  *                                                                        */
 
 /**
- * Defines the column mapping for a property
+ * Annotation to define the column mapping for a property
  *
  * @Annotation
  * @Target({"PROPERTY"})

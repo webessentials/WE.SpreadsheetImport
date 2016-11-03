@@ -1,0 +1,33 @@
+<f:layout name="Default" />
+
+<f:section name="Content">
+	<h1><f:translate id="label.spreadsheet_import.new" /></h1>
+	<f:form action="create" objectName="newSpreadsheetImport" enctype="multipart/form-data">
+		<f:form.hidden property="context" value="{context}" />
+		<f:form.hidden property="arguments" value="{arguments}" />
+		<div>
+			<label for="file"><f:translate id="label.spreadsheet_import.file" /> <span class="require"> * </span></label>
+			<f:form.upload property="file" additionalAttributes="{accept: '.xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', required: 1}" />
+		</div>
+		<div>
+			<label for="schedule"><f:translate id="label.spreadsheet_import.schedule" /><span class="require"> * </span></label>
+			<f:form.textfield name="schedule" id="schedule" property="scheduleDate" required="1" placeholder="dd.mm.yyyy" value="{f:format.date(format : 'd.m.Y', date : 'NOW')}"/>
+		</div>
+		<div>
+			<label for="scheduleTime"><f:translate id="label.spreadsheet_import.schedule_time" /><span class="require"> * </span></label>
+			<f:form.textfield id="scheduleTime" name="scheduleTime" value="00:00" placeholder="hh:mm" required="1" />
+		</div>
+		<div>
+			<label><f:translate id="label.spreadsheet_import.new.import_actions" /></label>
+			<div>
+				<f:form.radio name="action" value="1" checked="1" id="insert" /> <label for="insert"> <f:translate id="label.spreadsheet_import.new.import_actions_inserting" /></label><br>
+				<f:form.radio name="action" value="2" id="insert-update" /> <label for="insert-update"> <f:translate id="label.spreadsheet_import.new.import_actions_updating" /></label><br>
+				<f:form.radio name="action" value="3" id="insert-update-delete" /> <label for="insert-update-delete"> <f:translate id="label.spreadsheet_import.new.import_actions_deleting" /></label>
+			</div>
+		</div>
+		<div>
+			<f:form.submit value="<f:translate id='label.spreadsheet_import.action.next'/>" />
+		</div>
+	</f:form>
+	<f:render partial="SpreadsheetImport/List" arguments="{_all}" />
+</f:section>
