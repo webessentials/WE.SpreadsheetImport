@@ -41,7 +41,7 @@
 				<source>Import Vorschau</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.preview.invalid_record">
-				<source>Ungültige Daten. Dieser Record wird nicht übersprungen.</source>
+				<source>Ungültige Daten. Dieser Record wird übersprungen.</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.preview.record">
 				<source>Zeile</source>

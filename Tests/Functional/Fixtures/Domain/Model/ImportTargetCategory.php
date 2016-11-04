@@ -1,5 +1,5 @@
 <?php
-namespace WE\SpreadsheetImport\Tests\Functional\Fixtures;
+namespace WE\SpreadsheetImport\Tests\Functional\Fixtures\Domain\Model;
 
 /*                                                                        *
  * This script belongs to the Flow package "SpreadsheetImport".           *
@@ -13,22 +13,19 @@ namespace WE\SpreadsheetImport\Tests\Functional\Fixtures;
 
 use TYPO3\Flow\Annotations as Flow;
 use WE\SpreadsheetImport\Annotations as SpreadsheetImport;
-use WE\SpreadsheetImport\Domain\Model\SpreadsheetImportTargetInterface;
 
 /**
  * @Flow\Entity
  */
-class ImportTarget {
+class ImportTargetCategory {
 
 	/**
 	 * @var string
-	 * @SpreadsheetImport\Mapping(identifier=true, setter="setRawId")
 	 */
 	protected  $id;
 
 	/**
 	 * @var string
-	 * @SpreadsheetImport\Mapping
 	 */
 	protected  $name;
 
@@ -47,13 +44,6 @@ class ImportTarget {
 	}
 
 	/**
-	 * @param string $id
-	 */
-	public function setRawId($id) {
-		$this->id = sprintf('%05d', $id);
-	}
-
-	/**
 	 * @return string
 	 */
 	public function getName() {
@@ -66,4 +56,5 @@ class ImportTarget {
 	public function setName($name) {
 		$this->name = $name;
 	}
+
 }

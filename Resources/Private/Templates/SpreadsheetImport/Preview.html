@@ -20,7 +20,7 @@
 		<f:form.hidden name="spreadsheetImport" value="{spreadsheetImport}"/>
 		<f:for each="{preview}" key="property" as="previewMapping">
 			<div>
-				<label>
+				<label class="{f:if(condition: previewMapping.error, then: 'error-text')}">
 					<f:if condition="{previewMapping.mapping.labelId}">
 						<f:then><f:translate id="{previewMapping.mapping.labelId}" />:</f:then>
 						<f:else>{property}:</f:else>

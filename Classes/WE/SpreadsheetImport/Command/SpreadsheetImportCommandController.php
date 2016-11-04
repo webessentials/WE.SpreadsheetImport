@@ -51,7 +51,7 @@ class SpreadsheetImportCommandController extends CommandController {
 	public function importCommand() {
 		$currentImportingCount = $this->spreadsheetImportRepository->countByImportingStatus(SpreadsheetImport::IMPORTING_STATUS_IN_PROGRESS);
 		if ($currentImportingCount > 0) {
-			$this->outputFormatted('Previous spreadsheet import is still in progress.');
+			$this->outputLine('Previous spreadsheet import is still in progress.');
 			$this->quit();
 		}
 		/** @var SpreadsheetImport $spreadsheetImport */
@@ -67,35 +67,65 @@ class SpreadsheetImportCommandController extends CommandController {
 			try {
 				$this->spreadsheetImportService->import();
 				$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_COMPLETED);
-				$this->outputFormatted('Spreadsheet has been imported. %d inserted, %d updated, %d deleted, %d skipped',
+				$this->outputLine('Spreadsheet has been imported. %d inserted, %d updated, %d deleted, %d skipped',
 					array($spreadsheetImport->getTotalInserted(), $spreadsheetImport->getTotalUpdated(), $spreadsheetImport->getTotalDeleted(), $spreadsheetImport->getTotalSkipped()));
-			} catch (Exception $e) {
+			} catch (\Exception $e) {
 				$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_FAILED);
-				$this->outputFormatted('Spreadsheet import failed.');
+				$this->outputLine('Spreadsheet import failed.');
 			}
-			$this->spreadsheetImportRepository->update($spreadsheetImport);
+			try {
+				$this->spreadsheetImportRepository->update($spreadsheetImport);
+			} catch (\Exception $e) {
+				$this->outputLine('Spreadsheet import status update error. It remains in progress until cleanup.');
+			}
 		} else {
 			$this->outputFormatted('No spreadsheet import in queue.');
 		}
 	}
 
 	/**
-	 * Cleanup previous spreadsheet imports. Threashold defined in settings.
+	 * Cleanup past and stalled imports.
+	 *
+	 * @param int $keepPastImportsThreasholdDays Overwrites the setting value
+	 * @param int $maxExecutionThreasholdMinutes Overwrites the setting value
 	 */
-	public function cleanupCommand() {
-		$cleanupImportsThreasholdDays = intval($this->settings['cleanupImportsThreasholdDays']);
-		$cleanupFromDate = new \DateTime();
-		$cleanupFromDate->sub(new \DateInterval('P' . $cleanupImportsThreasholdDays . 'D'));
-		$oldSpreadsheetImports = $this->spreadsheetImportRepository->findPreviousImportsBySpecificDate($cleanupFromDate);
-		if ($oldSpreadsheetImports->count() > 0) {
-			/** @var SpreadsheetImport $oldSpreadsheetImport */
-			foreach ($oldSpreadsheetImports as $oldSpreadsheetImport) {
-				$this->spreadsheetImportRepository->remove($oldSpreadsheetImport);
-			}
-			$this->outputLine('%d spreadsheet imports were removed.', array($oldSpreadsheetImports->count()));
-		} else {
-			$this->outputLine('There is no spreadsheet import in queue to remove.');
-		}
+	public function cleanupCommand($keepPastImportsThreasholdDays = -1, $maxExecutionThreasholdMinutes = -1) {
+		$keepPastImportsThreasholdDays = ($keepPastImportsThreasholdDays >= 0) ? $keepPastImportsThreasholdDays : intval($this->settings['keepPastImportsThreasholdDays']);
+		$maxExecutionThreasholdMinutes = ($maxExecutionThreasholdMinutes >= 0) ? $maxExecutionThreasholdMinutes : intval($this->settings['maxExecutionThreasholdMinutes']);
+		$this->cleanupPastImports($keepPastImportsThreasholdDays);
+		$this->cleanupStalledImports($maxExecutionThreasholdMinutes);
 	}
 
+	/**
+	 * Delete past imports
+	 *
+	 * @param int $keepPastImportsThreasholdDays
+	 */
+	private function cleanupPastImports($keepPastImportsThreasholdDays) {
+		$cleanupFromDateTime = new \DateTime();
+		$cleanupFromDateTime->sub(new \DateInterval('P' . $keepPastImportsThreasholdDays . 'D'));
+		$spreadsheetImports = $this->spreadsheetImportRepository->findBySpecificDateTimeAndImportingStatus($cleanupFromDateTime);
+		/** @var SpreadsheetImport $spreadsheetImport */
+		foreach ($spreadsheetImports as $spreadsheetImport) {
+			$this->spreadsheetImportRepository->remove($spreadsheetImport);
+		}
+		$this->outputLine('%d spreadsheet imports removed.', array($spreadsheetImports->count()));
+	}
+
+	/**
+	 * Set stalled imports to failed
+	 *
+	 * @param int $maxExecutionThreasholdMinutes
+	 */
+	private function cleanupStalledImports($maxExecutionThreasholdMinutes) {
+		$cleanupFromDateTime = new \DateTime();
+		$cleanupFromDateTime->sub(new \DateInterval('PT' . $maxExecutionThreasholdMinutes . 'M'));
+		$spreadsheetImports = $this->spreadsheetImportRepository->findBySpecificDateTimeAndImportingStatus($cleanupFromDateTime, SpreadsheetImport::IMPORTING_STATUS_IN_PROGRESS);
+		/** @var SpreadsheetImport $spreadsheetImport */
+		foreach ($spreadsheetImports as $spreadsheetImport) {
+			$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_FAILED);
+			$this->spreadsheetImportRepository->update($spreadsheetImport);
+		}
+		$this->outputLine('%d spreadsheet imports set to failed.', array($spreadsheetImports->count()));
+	}
 }

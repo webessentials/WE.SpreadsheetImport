@@ -42,12 +42,16 @@ class SpreadsheetImportRepository extends Repository {
 
 	/**
 	 * @param \DateTime $dateTime
+	 * @param int $importingStatus
 	 *
 	 * @return \TYPO3\Flow\Persistence\QueryResultInterface
 	 */
-	public function findPreviousImportsBySpecificDate(\DateTime $dateTime) {
+	public function findBySpecificDateTimeAndImportingStatus(\DateTime $dateTime, $importingStatus = -1) {
 		$query = $this->createQuery();
-		$constraint = $query->lessThanOrEqual('scheduleDate', $dateTime);
+		$constraint = $query->lessThanOrEqual('progressDate', $dateTime);
+		if ($importingStatus >= 0) {
+			$constraint = $query->logicalAnd($constraint, $query->equals('importingStatus', $importingStatus));
+		}
 		return $query->matching($constraint)->execute();
 	}
 

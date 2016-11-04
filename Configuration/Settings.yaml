@@ -1,4 +1,5 @@
 WE:
   SpreadsheetImport:
-    cleanupImportsThreasholdDays: 365
+    keepPastImportsThreasholdDays: 365
+    maxExecutionThreasholdMinutes: 720
     persistRecordsChunkSize: 100
