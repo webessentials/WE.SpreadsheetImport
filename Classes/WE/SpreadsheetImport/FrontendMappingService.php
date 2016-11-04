@@ -122,7 +122,7 @@ class FrontendMappingService {
 		$previewObject = $this->spreadsheetImportService->getObjectByRow($record);
 		$preview = array();
 		$hasErrors = FALSE;
-		$objectValidator = $this->validatorResolver->getBaseValidatorConjunction($domain);
+		$objectValidator = $this->validatorResolver->getBaseValidatorConjunction($domain, SpreadsheetImportService::VALIDATION_GROUPS);
 		$errors = $objectValidator->validate($previewObject)->getFlattenedErrors();
 		foreach ($mapping as $property => $columnMapping) {
 			/** @var Mapping $mapping */

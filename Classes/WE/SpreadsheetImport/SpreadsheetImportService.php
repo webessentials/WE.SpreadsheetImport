@@ -23,6 +23,8 @@ use WE\SpreadsheetImport\Domain\Model\SpreadsheetImport;
  */
 class SpreadsheetImportService {
 
+	const VALIDATION_GROUPS = array('Default', 'SpreadsheetImport');
+
 	/**
 	 * Domain object containing the configuration the service works with
 	 *
@@ -204,7 +206,7 @@ class SpreadsheetImportService {
 		$totalDeleted = 0;
 		$processedObjectIds = array();
 		$objectRepository = $this->getDomainRepository();
-		$objectValidator = $this->validatorResolver->getBaseValidatorConjunction($this->domain);
+		$objectValidator = $this->validatorResolver->getBaseValidatorConjunction($this->domain, self::VALIDATION_GROUPS);
 		$sheet = $this->getFileActiveSheet();
 		$persistRecordsChunkSize = intval($this->settings['persistRecordsChunkSize']);
 		$totalCount = 0;
