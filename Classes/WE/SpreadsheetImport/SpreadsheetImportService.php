@@ -47,6 +47,12 @@ class SpreadsheetImportService {
 
 	/**
 	 * @Flow\Inject
+	 * @var \WE\SpreadsheetImport\Log\SpreadsheetImportLoggerInterface
+	 */
+	protected $logger;
+
+	/**
+	 * @Flow\Inject
 	 * @var \TYPO3\Flow\Reflection\ReflectionService
 	 */
 	protected $reflectionService;
@@ -212,19 +218,24 @@ class SpreadsheetImportService {
 		$totalCount = 0;
 		/** @var \PHPExcel_Worksheet_Row $row */
 		foreach ($sheet->getRowIterator(2) as $row) {
+			$recordNumber = $row->getRowIndex() - 1;
 			$totalCount++;
 			$object = $this->findExistingObjectByRow($row);
 			if (is_object($object)) {
-				$processedObjectIds[] = $this->persistenceManager->getIdentifierByObject($object);
+				$id = $this->persistenceManager->getIdentifierByObject($object);
+				$processedObjectIds[] = $id;
 				if ($this->spreadsheetImport->isUpdating()) {
 					$this->setObjectPropertiesByRow($object, $row);
 					$validationResult = $objectValidator->validate($object);
 					if ($validationResult->hasErrors()) {
+						$this->log(vsprintf('Object %s for record %d skipped. Update object validation failed.', array($id, $recordNumber)), LOG_INFO);
 						continue;
 					}
 					$objectRepository->update($object);
+					$this->log(vsprintf('Object %s for record %d updated.', array($id, $recordNumber)), LOG_INFO);
 					$totalUpdated++;
 				} else {
+					$this->log(vsprintf('Object %s for record %d skipped. Updating is disabled.', array($id, $recordNumber)), LOG_INFO);
 					continue;
 				}
 			} elseif ($this->spreadsheetImport->isInserting()) {
@@ -232,24 +243,29 @@ class SpreadsheetImportService {
 				$this->setObjectPropertiesByRow($newObject, $row);
 				$validationResult = $objectValidator->validate($newObject);
 				if ($validationResult->hasErrors()) {
+					$this->log(vsprintf('Record %d skipped. Insert object validation failed.', array($recordNumber)), LOG_INFO);
 					continue;
 				}
 				$objectRepository->add($newObject);
-				$processedObjectIds[] = $this->persistenceManager->getIdentifierByObject($newObject);
+				$id = $this->persistenceManager->getIdentifierByObject($object);
+				$processedObjectIds[] = $id;
+				$this->log(vsprintf('Object %s for record %d inserted.', array($id, $recordNumber)), LOG_INFO);
 				$totalInserted++;
 			} else {
+				$this->log(vsprintf('Record %d skipped. Inserting is disabled.', array($recordNumber)), LOG_INFO);
 				continue;
 			}
 			if ($totalCount % $persistRecordsChunkSize === 0) {
 				$this->persistenceManager->persistAll();
 			}
 		}
-		$deleteCount = 0;
 		if ($this->spreadsheetImport->isDeleting()) {
 			$notExistingObjects = $this->findObjectsByArgumentsAndExcludedIds($processedObjectIds);
 			foreach ($notExistingObjects as $object) {
+				$id = $this->persistenceManager->getIdentifierByObject($object);
+				$this->log(vsprintf('Object %s deleted.', array($id)), LOG_INFO);
 				$objectRepository->remove($object);
-				if (++$deleteCount % $persistRecordsChunkSize === 0) {
+				if (++$totalDeleted % $persistRecordsChunkSize === 0) {
 					$this->persistenceManager->persistAll();
 				}
 			}
@@ -358,12 +374,12 @@ class SpreadsheetImportService {
 	 * @param \PHPExcel_Worksheet_Row $row
 	 */
 	private function setObjectMappingProperties($object, $row) {
-		$inversedMappingProperties = $this->getInverseMappingProperties();
+		$inverseMappingProperties = $this->getInverseMappingProperties();
 		/** @var \PHPExcel_Cell $cell */
 		foreach ($row->getCellIterator() as $cell) {
 			$column = $cell->getColumn();
-			if (array_key_exists($column, $inversedMappingProperties)) {
-				$properties = $inversedMappingProperties[$column];
+			if (array_key_exists($column, $inverseMappingProperties)) {
+				$properties = $inverseMappingProperties[$column];
 				foreach ($properties as $propertyMapping) {
 					$property = $propertyMapping['property'];
 					/** @var Mapping $mapping */
@@ -456,5 +472,16 @@ class SpreadsheetImportService {
 		/** @var RepositoryInterface $repository */
 		$repository = $this->objectManager->get($repositoryClassName);
 		return $repository;
+	}
+
+	/**
+	 * @param string $message
+	 * @param int $severity
+	 * @param null $additionalData
+	 */
+	private function log($message, $severity = LOG_INFO, $additionalData = NULL) {
+		$name = ucfirst($this->spreadsheetImport->getContext());
+		$message = vsprintf('[%s] ' . $message, array($name));
+		$this->logger->log($message, $severity, $additionalData, 'SpreadsheetImport');
 	}
 }

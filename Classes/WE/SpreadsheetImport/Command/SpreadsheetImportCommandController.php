@@ -13,7 +13,6 @@ namespace WE\SpreadsheetImport\Command;
 
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Cli\CommandController;
-use TYPO3\Flow\Exception;
 use WE\SpreadsheetImport\Domain\Model\SpreadsheetImport;
 
 /**
@@ -32,6 +31,12 @@ class SpreadsheetImportCommandController extends CommandController {
 	 * @var \WE\SpreadsheetImport\SpreadsheetImportService
 	 */
 	protected $spreadsheetImportService;
+
+	/**
+	 * @Flow\Inject
+	 * @var \WE\SpreadsheetImport\Log\SpreadsheetImportLoggerInterface
+	 */
+	protected $logger;
 
 	/**
 	 * @Flow\Inject
@@ -57,6 +62,8 @@ class SpreadsheetImportCommandController extends CommandController {
 		/** @var SpreadsheetImport $spreadsheetImport */
 		$spreadsheetImport = $this->spreadsheetImportRepository->findNextInQueue();
 		if ($spreadsheetImport instanceof SpreadsheetImport) {
+			$message = 'Spreadsheet import started.';
+			$this->log($spreadsheetImport, $message, LOG_INFO);
 			// mark importing status as "Progressing" before continuing the importing
 			$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_IN_PROGRESS);
 			$this->spreadsheetImportRepository->update($spreadsheetImport);
@@ -67,16 +74,19 @@ class SpreadsheetImportCommandController extends CommandController {
 			try {
 				$this->spreadsheetImportService->import();
 				$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_COMPLETED);
-				$this->outputLine('Spreadsheet has been imported. %d inserted, %d updated, %d deleted, %d skipped',
-					array($spreadsheetImport->getTotalInserted(), $spreadsheetImport->getTotalUpdated(), $spreadsheetImport->getTotalDeleted(), $spreadsheetImport->getTotalSkipped()));
+				$args = array($spreadsheetImport->getTotalInserted(), $spreadsheetImport->getTotalUpdated(), $spreadsheetImport->getTotalDeleted(), $spreadsheetImport->getTotalSkipped());
+				$message = vsprintf('Spreadsheet import complete: %d inserted, %d updated, %d deleted, %d skipped', $args);
+				$this->log($spreadsheetImport, $message, LOG_INFO);
 			} catch (\Exception $e) {
 				$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_FAILED);
-				$this->outputLine('Spreadsheet import failed.');
+				$message = 'Spreadsheet import failed.';
+				$this->log($spreadsheetImport, $message, LOG_ERR, $e->getMessage());
 			}
 			try {
 				$this->spreadsheetImportRepository->update($spreadsheetImport);
 			} catch (\Exception $e) {
-				$this->outputLine('Spreadsheet import status update error. It remains in progress until cleanup.');
+				$message = 'Spreadsheet import status update error. It remains in progress until cleanup.';
+				$this->log($spreadsheetImport, $message, LOG_ERR, $e->getMessage());
 			}
 		} else {
 			$this->outputFormatted('No spreadsheet import in queue.');
@@ -108,8 +118,9 @@ class SpreadsheetImportCommandController extends CommandController {
 		/** @var SpreadsheetImport $spreadsheetImport */
 		foreach ($spreadsheetImports as $spreadsheetImport) {
 			$this->spreadsheetImportRepository->remove($spreadsheetImport);
+			$message = 'Spreadsheet import removed.';
+			$this->log($spreadsheetImport, $message, LOG_INFO, NULL);
 		}
-		$this->outputLine('%d spreadsheet imports removed.', array($spreadsheetImports->count()));
 	}
 
 	/**
@@ -125,7 +136,21 @@ class SpreadsheetImportCommandController extends CommandController {
 		foreach ($spreadsheetImports as $spreadsheetImport) {
 			$spreadsheetImport->setImportingStatus(SpreadsheetImport::IMPORTING_STATUS_FAILED);
 			$this->spreadsheetImportRepository->update($spreadsheetImport);
+			$message = 'Spreadsheet import exceeded max execution threashold. Status set to failed.';
+			$this->log($spreadsheetImport, $message, LOG_NOTICE);
 		}
-		$this->outputLine('%d spreadsheet imports set to failed.', array($spreadsheetImports->count()));
+	}
+
+	/**
+	 * @param SpreadsheetImport $spreadsheetImport
+	 * @param string $message
+	 * @param int $severity
+	 * @param null $additionalData
+	 */
+	private function log(SpreadsheetImport $spreadsheetImport, $message, $severity = LOG_INFO, $additionalData = NULL) {
+		$name = ucfirst($spreadsheetImport->getContext());
+		$message = vsprintf('[%s] ' . $message, array($name));
+		$this->logger->log($message, $severity, $additionalData, 'SpreadsheetImport');
+		$this->outputLine($message);
 	}
 }
