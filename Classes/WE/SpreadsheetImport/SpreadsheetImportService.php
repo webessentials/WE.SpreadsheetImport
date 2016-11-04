@@ -244,12 +244,11 @@ class SpreadsheetImportService {
 				$this->persistenceManager->persistAll();
 			}
 		}
-		$deleteCount = 0;
 		if ($this->spreadsheetImport->isDeleting()) {
 			$notExistingObjects = $this->findObjectsByArgumentsAndExcludedIds($processedObjectIds);
 			foreach ($notExistingObjects as $object) {
 				$objectRepository->remove($object);
-				if (++$deleteCount % $persistRecordsChunkSize === 0) {
+				if (++$totalDeleted % $persistRecordsChunkSize === 0) {
 					$this->persistenceManager->persistAll();
 				}
 			}
