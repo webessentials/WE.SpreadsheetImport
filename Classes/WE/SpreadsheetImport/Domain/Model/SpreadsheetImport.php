@@ -38,9 +38,18 @@ class SpreadsheetImport {
 	protected $file;
 
 	/**
+	 * DateTime when import is scheduled to progress
+	 *
 	 * @var \DateTime
 	 */
 	protected $scheduleDate;
+
+	/**
+	 * Actual DateTime when import is set to in progress
+	 *
+	 * @var \DateTime
+	 */
+	protected $progressDate;
 
 	/**
 	 * @var string
@@ -100,6 +109,7 @@ class SpreadsheetImport {
 	 */
 	public function __construct() {
 		$this->scheduleDate = new \DateTime();
+		$this->progressDate = new \DateTime();
 	}
 
 	/**
@@ -142,6 +152,7 @@ class SpreadsheetImport {
 	 */
 	public function setScheduleDate($scheduleDate) {
 		$this->scheduleDate = $scheduleDate;
+		$this->progressDate = $scheduleDate;
 	}
 
 	/**
@@ -238,6 +249,9 @@ class SpreadsheetImport {
 	 */
 	public function setImportingStatus($importingStatus) {
 		$this->importingStatus = $importingStatus;
+		if ($importingStatus === self::IMPORTING_STATUS_IN_PROGRESS) {
+			$this->progressDate = new \DateTime();
+		}
 	}
 
 	/**

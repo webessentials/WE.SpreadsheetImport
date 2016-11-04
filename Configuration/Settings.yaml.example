@@ -1,6 +1,7 @@
 WE:
   SpreadsheetImport:
-    cleanupImportsThreasholdDays: 365
+    keepPastImportsThreasholdDays: 365
+    maxExecutionThreasholdMinutes: 720
     persistRecordsChunkSize: 100
     default:
       domain: WE\Sample\Domain\Model\User
