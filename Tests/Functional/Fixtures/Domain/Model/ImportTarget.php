@@ -12,6 +12,7 @@ namespace WE\SpreadsheetImport\Tests\Functional\Fixtures\Domain\Model;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use Doctrine\ORM\Mapping as ORM;
 use WE\SpreadsheetImport\Annotations as SpreadsheetImport;
 
 /**
@@ -45,6 +46,7 @@ class ImportTarget {
 
 	/**
 	 * @var ImportTargetCategory
+	 * @ORM\ManyToOne
 	 */
 	protected  $category;
 
