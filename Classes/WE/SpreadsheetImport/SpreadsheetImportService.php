@@ -130,6 +130,13 @@ class SpreadsheetImportService {
 	}
 
 	/**
+	 * @return \WE\SpreadsheetImport\Domain\Model\SpreadsheetImport
+	 */
+	public function getSpreadsheetImport() {
+		return $this->spreadsheetImport;
+	}
+
+	/**
 	 * Returns the annotation properties of the related domain model with the property name as key.
 	 *
 	 * Example:
