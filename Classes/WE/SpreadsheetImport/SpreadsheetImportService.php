@@ -130,6 +130,13 @@ class SpreadsheetImportService {
 	}
 
 	/**
+	 * @return \WE\SpreadsheetImport\Domain\Model\SpreadsheetImport
+	 */
+	public function getSpreadsheetImport() {
+		return $this->spreadsheetImport;
+	}
+
+	/**
 	 * Returns the annotation properties of the related domain model with the property name as key.
 	 *
 	 * Example:
@@ -247,7 +254,7 @@ class SpreadsheetImportService {
 					continue;
 				}
 				$objectRepository->add($newObject);
-				$id = $this->persistenceManager->getIdentifierByObject($object);
+				$id = $this->persistenceManager->getIdentifierByObject($newObject);
 				$processedObjectIds[] = $id;
 				$this->log(vsprintf('Object %s for record %d inserted.', array($id, $recordNumber)), LOG_INFO);
 				$totalInserted++;
