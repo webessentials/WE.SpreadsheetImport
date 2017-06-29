@@ -10,7 +10,12 @@
 				<label for="{property}">
 					<f:if condition="{columnMapping.mapping.labelId}">
 						<f:then><f:translate id="{columnMapping.mapping.labelId}" /></f:then>
-						<f:else>{property}</f:else>
+						<f:else>
+							<f:if condition="{columnMapping.mapping.labelText}">
+								<f:then>{columnMapping.mapping.labelText}</f:then>
+								<f:else>{property}</f:else>
+							</f:if>
+						</f:else>
 					</f:if>
 					<f:if condition="{columnMapping.mapping.identifier}">
 						<span class="require"> * </span>
