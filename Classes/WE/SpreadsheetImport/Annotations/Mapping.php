@@ -27,6 +27,13 @@ final class Mapping {
 	public $labelId = '';
 
 	/**
+	 * Label text for the property mapping if no labelId is set
+	 *
+	 * @var string
+	 */
+	public $labelText = '';
+
+	/**
 	 * Flag if property is handled as an identifier for updates
 	 *
 	 * @var boolean
