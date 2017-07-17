@@ -3,3 +3,4 @@ WE:
     keepPastImportsThreasholdDays: 365
     maxExecutionThreasholdMinutes: 720
     persistRecordsChunkSize: 100
+    maxImportRecord: 10000
