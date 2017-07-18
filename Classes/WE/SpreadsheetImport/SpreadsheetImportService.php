@@ -15,6 +15,7 @@ use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Persistence\RepositoryInterface;
 use WE\SpreadsheetImport\Annotations\Mapping;
 use WE\SpreadsheetImport\Domain\Model\SpreadsheetImport;
+use WE\SpreadsheetImport\Exception\Exception;
 
 /**
  * Service to handle the column mapping and the import itself
@@ -212,6 +213,7 @@ class SpreadsheetImportService {
 	 * SpreadsheetImport object.
 	 *
 	 * @return void
+	 * @throws \WE\SpreadsheetImport\Exception\Exception
 	 */
 	public function import() {
 		$totalInserted = 0;
@@ -221,6 +223,10 @@ class SpreadsheetImportService {
 		$objectRepository = $this->getDomainRepository();
 		$objectValidator = $this->validatorResolver->getBaseValidatorConjunction($this->domain, self::VALIDATION_GROUPS);
 		$sheet = $this->getFileActiveSheet();
+		if ($sheet->getHighestRow() > $this->settings['maxImportRecord']) {
+			$this->log(vsprintf('Your file have %d records is over maximum records. Please change settings(WE.SpreadsheetImport.maxImportRecord) if you want to import this file.', array($sheet->getHighestRow(), $this->settings['maxImportRecord'])), LOG_INFO);
+			throw new Exception('Maximum records are reach.', 1471257692);
+		}
 		$persistRecordsChunkSize = intval($this->settings['persistRecordsChunkSize']);
 		$totalCount = 0;
 		/** @var \PHPExcel_Worksheet_Row $row */
@@ -271,6 +277,7 @@ class SpreadsheetImportService {
 			foreach ($notExistingObjects as $object) {
 				$id = $this->persistenceManager->getIdentifierByObject($object);
 				$this->log(vsprintf('Object %s deleted.', array($id)), LOG_INFO);
+				$this->emitBeforeRemove($object);
 				$objectRepository->remove($object);
 				if (++$totalDeleted % $persistRecordsChunkSize === 0) {
 					$this->persistenceManager->persistAll();
@@ -283,6 +290,13 @@ class SpreadsheetImportService {
 		$this->spreadsheetImport->setTotalSkipped($totalCount - $totalInserted - $totalUpdated);
 		$this->spreadsheetImport->setTotalDeleted($totalDeleted);
 	}
+
+	/**
+	 * @param mixed $object
+	 * @return void
+	 * @Flow\Signal
+	 */
+	protected function emitBeforeRemove($object) {}
 
 	/**
 	 * Return the active sheet of a spreadsheet. Other potential sheets are ignored on the import.
