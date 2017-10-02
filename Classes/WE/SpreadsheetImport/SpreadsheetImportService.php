@@ -332,7 +332,12 @@ class SpreadsheetImportService {
 			$constraints[] = $query->equals($propertyName, $value);
 		}
 		$argumentIdentifierProperties = $this->getArgumentIdentifierProperties();
+		$contextArguments = $this->settings[$this->spreadsheetImport->getContext()]['arguments'];
 		foreach ($argumentIdentifierProperties as $property => $value) {
+			$key = array_search($property, array_column($contextArguments, 'name'));
+			if ($key !== FALSE && array_key_exists('queryPropertyName', $contextArguments[$key])) {
+				$property = $contextArguments[$key]['queryPropertyName'];
+			}
 			$constraints[] = $query->equals($property, $value);
 		}
 		if (!empty($constraints)) {
@@ -351,7 +356,12 @@ class SpreadsheetImportService {
 		$query = $this->getDomainRepository()->createQuery();
 		$constraints[] = $query->logicalNot($query->in('Persistence_Object_Identifier', $identifiers));
 		// Include all the arguments into the query to get a subset only
+		$contextArguments = $this->settings[$this->spreadsheetImport->getContext()]['arguments'];
 		foreach ($this->spreadsheetImport->getArguments() as $name => $value) {
+			$key = array_search($name, array_column($contextArguments, 'name'));
+			if ($key !== FALSE && array_key_exists('queryPropertyName', $contextArguments[$key])) {
+				$name = $contextArguments[$key]['queryPropertyName'];
+			}
 			$constraints[] = $query->equals($name, $value);
 		}
 		return $query->matching($query->logicalAnd($constraints))->execute();
