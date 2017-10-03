@@ -41,6 +41,13 @@ final class Mapping {
 	public $identifier = FALSE;
 
 	/**
+	 * Flag if property is handled as required mapping
+	 *
+	 * @var boolean
+	 */
+	public $required = FALSE;
+
+	/**
 	 * Overwrite the default getter for previews
 	 *
 	 * @var string
