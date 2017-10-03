@@ -18,7 +18,14 @@
 						</f:else>
 					</f:if>
 					<f:if condition="{columnMapping.mapping.identifier}">
-						<span class="require"> * </span>
+						<f:then>
+							<span class="require"> * </span>
+						</f:then>
+						<f:else>
+							<f:if condition="{columnMapping.mapping.required}">
+								<span class="require"> * </span>
+							</f:if>
+						</f:else>
 					</f:if>
 				</label>
 				<div>
@@ -26,10 +33,17 @@
 						<f:then>
 							<f:if condition="{columnMapping.mapping.identifier}">
 								<f:then>
-									<f:form.select name="{property}" options="{spreadsheetColumns}" prependOptionLabel="{f:translate(id: 'label.please_select')}" value="{columnMapping.column}" additionalAttributes="{required: 1}" />
+									<f:form.select class="form-control select-mapping-column" name="{property}" options="{spreadsheetColumns}" prependOptionLabel="{f:translate(id: 'label.please_choose')}" value="{columnMapping.column}" additionalAttributes="{required: 1}" />
 								</f:then>
 								<f:else>
-									<f:form.select name="{property}" options="{spreadsheetColumns}" prependOptionLabel="{f:translate(id: 'label.please_select')}" value="{columnMapping.column}" />
+									<f:if condition="{columnMapping.mapping.required}">
+										<f:then>
+											<f:form.select class="form-control select-mapping-column" name="{property}" options="{spreadsheetColumns}" prependOptionLabel="{f:translate(id: 'label.please_choose')}" value="{columnMapping.column}" additionalAttributes="{required: 1}" />
+										</f:then>
+										<f:else>
+											<f:form.select class="form-control select-mapping-column" name="{property}" options="{spreadsheetColumns}" prependOptionLabel="{f:translate(id: 'label.please_choose')}" value="{columnMapping.column}" />
+										</f:else>
+									</f:if>
 								</f:else>
 							</f:if>
 						</f:then>
