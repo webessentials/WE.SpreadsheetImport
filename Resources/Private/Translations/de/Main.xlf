@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
-	<file original="" source-language="de" datatype="plaintext">
+	<file original="" source-language="de"  datatype="plaintext">
 		<body>
 			<trans-unit id="label.spreadsheet_import.action.next">
 				<source>Weiter</source>
@@ -17,10 +17,8 @@
 			<trans-unit id="label.spreadsheet_import.action.delete">
 				<source>Löschen</source>
 			</trans-unit>
-
-			<!-- Views -->
 			<trans-unit id="label.spreadsheet_import.new">
-				<source>Neuer Spreadsheet Import</source>
+				<source>Neuer Tabellenimport</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.new.import_actions">
 				<source>Prozess</source>
@@ -35,13 +33,13 @@
 				<source>Neue Datensätze erstellen, existierende aktualisieren und nicht existierende löschen</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.mapping">
-				<source>Spalten Zuordnung</source>
+				<source>Spaltenzuordnung</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.preview">
-				<source>Import Vorschau</source>
+				<source>Vorschau Import</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.preview.invalid_record">
-				<source>Ungültige Daten. Dieser Record wird übersprungen.</source>
+				<source>Ungültige Daten. Dieser Eintrag wird übersprungen.</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.preview.record">
 				<source>Zeile</source>
@@ -49,8 +47,6 @@
 			<trans-unit id="label.spreadsheet_import.list">
 				<source>Importe</source>
 			</trans-unit>
-
-			<!-- Status -->
 			<trans-unit id="label.spreadsheet_import.importingStatus">
 				<source>Status</source>
 			</trans-unit>
@@ -69,16 +65,14 @@
 			<trans-unit id="label.spreadsheet_import.importingStatus.failed">
 				<source>Fehlgeschlagen</source>
 			</trans-unit>
-
-			<!-- SpreadsheetImport Model -->
 			<trans-unit id="label.spreadsheet_import.file">
 				<source>Datei</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.schedule">
-				<source>Ausführungs Datum</source>
+				<source>Ausführungsdatum</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.schedule_time">
-				<source>Ausführungs Zeit</source>
+				<source>Ausführungszeit</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.inserting">
 				<source>Erstellen</source>
@@ -90,16 +84,16 @@
 				<source>Löschen</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.totalInserted">
-				<source>Total Erstellt</source>
+				<source>Total erstellt</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.totalUpdated">
-				<source>Total Aktualisiert</source>
+				<source>Total aktualisiert</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.totalDeleted">
-				<source>Total Gelöscht</source>
+				<source>Total gelöscht</source>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.totalSkipped">
-				<source>Total Übersprungen</source>
+				<source>Total übersprungen</source>
 			</trans-unit>
 		</body>
 	</file>
