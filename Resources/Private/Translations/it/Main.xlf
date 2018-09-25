@@ -1,130 +1,130 @@
 <?xml version="1.0"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
-	<file original="" source-language="de" target-language="en" datatype="plaintext">
+	<file original="" source-language="de" target-language="it" datatype="plaintext">
 		<body>
 			<trans-unit id="label.spreadsheet_import.action.next">
 				<source>Weiter</source>
-				<target>Next</target>
+				<target>Avanti</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.action.cancel">
 				<source>Abbrechen</source>
-				<target>Cancel</target>
+				<target>Cancella</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.action.create">
 				<source>Erstellen</source>
-				<target>Create</target>
+				<target>Crea</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.action.mapping">
 				<source>Ansicht</source>
-				<target>View</target>
+				<target>Veduta</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.action.delete">
 				<source>Löschen</source>
-				<target>Delete</target>
+				<target>Cancella</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.new">
-				<source>Neuer Tabellenimport</source>
-				<target>New spreadsheet import</target>
+				<source>Neuer Spreadsheet Import</source>
+				<target>Importa nuovo spreadsheet</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.new.import_actions">
 				<source>Prozess</source>
-				<target>Actions</target>
+				<target>Processo</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.new.import_actions_inserting">
 				<source>Neue Datensätze erstellen</source>
-				<target>Insert new records</target>
+				<target>Crea set di dati nuovi</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.new.import_actions_updating">
 				<source>Neue Datensätze erstellen und existierende aktualisieren</source>
-				<target>Insert new and update existing records</target>
+				<target>Crea set di dati nuovi e attualizza quelli esistenti</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.new.import_actions_deleting">
 				<source>Neue Datensätze erstellen, existierende aktualisieren und nicht existierende löschen</source>
-				<target>Insert new, update existing, and delete not existing records</target>
+				<target>Crea set di dati nuovi, attualizza quelli esistenti e cancella queli inesistenti</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.mapping">
-				<source>Spaltenzuordnung</source>
-				<target>Column mapping</target>
+				<source>Zuordnung Spalten</source>
+				<target>Allocazione tabulato</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.preview">
-				<source>Vorschau Import</source>
-				<target>Import preview</target>
+				<source>Import Vorschau</source>
+				<target>Anteprima importo</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.preview.invalid_record">
-				<source>Ungültige Daten. Dieser Eintrag wird übersprungen.</source>
-				<target>Invalid data. This record will be skipped.</target>
+				<source>Ungültige Daten. Dieser Record wird übersprungen.</source>
+				<target>Dati invalidi. Questo set di dati sarà saltato.</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.preview.record">
 				<source>Zeile</source>
-				<target>Record</target>
+				<target>Riga</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.list">
 				<source>Importe</source>
-				<target>Imports</target>
+				<target>Importi</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.importingStatus">
 				<source>Status</source>
-				<target>Status</target>
+				<target>Stato</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.importingStatus.draft">
 				<source>Entwurf</source>
-				<target>Draft</target>
+				<target>Bozza</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.importingStatus.inQueue">
 				<source>Geplant</source>
-				<target>In queue</target>
+				<target>In programma</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.importingStatus.inProgress">
 				<source>In Bearbeitung</source>
-				<target>In progress</target>
+				<target>In corso</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.importingStatus.completed">
 				<source>Abgeschlossen</source>
-				<target>Completed</target>
+				<target>Completato</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.importingStatus.failed">
 				<source>Fehlgeschlagen</source>
-				<target>Failed</target>
+				<target>Fallito</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.file">
 				<source>Datei</source>
 				<target>File</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.schedule">
-				<source>Ausführungsdatum</source>
-				<target>Schedule date</target>
+				<source>Ausführungs Datum</source>
+				<target>Data d'effettuazione</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.schedule_time">
-				<source>Ausführungszeit</source>
-				<target>Schedule time</target>
+				<source>Ausführungs Zeit</source>
+				<target>Orario d'effettuazione</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.inserting">
 				<source>Erstellen</source>
-				<target>Insert</target>
+				<target>Creare</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.updating">
 				<source>Aktualisieren</source>
-				<target>Update</target>
+				<target>Attualizzare</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.deleting">
 				<source>Löschen</source>
-				<target>Delete</target>
+				<target>Cancellare</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.totalInserted">
 				<source>Total erstellt</source>
-				<target>Total inserted</target>
+				<target>Creati in totale</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.totalUpdated">
 				<source>Total aktualisiert</source>
-				<target>Total updated</target>
+				<target>Attualizzati in totale</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.totalDeleted">
 				<source>Total gelöscht</source>
-				<target>Total deleted</target>
+				<target>Cancellati in totale</target>
 			</trans-unit>
 			<trans-unit id="label.spreadsheet_import.totalSkipped">
 				<source>Total übersprungen</source>
-				<target>Total skipped</target>
+				<target>Saltati in totale</target>
 			</trans-unit>
 		</body>
 	</file>
